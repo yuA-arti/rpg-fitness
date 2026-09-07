@@ -107,6 +107,73 @@
     ];
 
     // キャラクター表示コンポーネント
+    
+    // 4軸レーダーチャート (STR, AGI, STM, INT)
+    function RadarChart({ stats, size = 150, isMale = true }) {
+      const center = size / 2;
+      const radius = size * 0.38;
+      
+      // 各ステータスの基準最大値を計算 (最小値50、それ以上は現在値の最大値+10に合わせて自動スケーリング)
+      const maxStat = Math.max(50, stats.strength || 10, stats.agility || 10, stats.stamina || 10, stats.intelligence || 10) + 10;
+      
+      const rSTR = ((stats.strength || 10) / maxStat) * radius;
+      const rAGI = ((stats.agility || 10) / maxStat) * radius;
+      const rSTM = ((stats.stamina || 10) / maxStat) * radius;
+      const rINT = ((stats.intelligence || 10) / maxStat) * radius;
+      
+      // 4軸の座標 (上: STR, 右: AGI, 下: STM, 左: INT)
+      const ptSTR = `${center},${center - rSTR}`;
+      const ptAGI = `${center + rAGI},${center}`;
+      const ptSTM = `${center},${center + rSTM}`;
+      const ptINT = `${center - rINT},${center}`;
+      const polyPoints = `${ptSTR} ${ptAGI} ${ptSTM} ${ptINT}`;
+      
+      // 目盛りの多角形 (25%, 50%, 75%, 100%)
+      const gridLevels = [0.25, 0.5, 0.75, 1.0];
+      
+      const strokeColor = isMale ? "#00f0ff" : "#ff4d94";
+      const fillColor = isMale ? "rgba(0, 240, 255, 0.35)" : "rgba(255, 77, 148, 0.35)";
+
+      return (
+        <div className="relative flex flex-col items-center justify-center p-1 bg-slate-900/80 rounded-2xl border border-slate-800 shadow-inner">
+          <div className="text-[10px] font-scifi font-bold text-slate-400 mb-0.5 tracking-wider">ABILITY RADAR</div>
+          <svg width={size} height={size} className="overflow-visible">
+            {/* グリッド線 */}
+            {gridLevels.map((lvl, idx) => {
+              const r = radius * lvl;
+              return (
+                <polygon
+                  key={idx}
+                  points={`${center},${center - r} ${center + r},${center} ${center},${center + r} ${center - r},${center}`}
+                  fill="none"
+                  stroke="rgba(148, 163, 184, 0.2)"
+                  strokeWidth="1"
+                />
+              );
+            })}
+            {/* 軸ライン */}
+            <line x1={center} y1={center - radius} x2={center} y2={center + radius} stroke="rgba(148, 163, 184, 0.25)" strokeWidth="1" />
+            <line x1={center - radius} y1={center} x2={center + radius} y2={center} stroke="rgba(148, 163, 184, 0.25)" strokeWidth="1" />
+            
+            {/* 塗りつぶしポリゴン */}
+            <polygon points={polyPoints} fill={fillColor} stroke={strokeColor} strokeWidth="2" />
+            
+            {/* 各頂点マーカー */}
+            <circle cx={center} cy={center - rSTR} r="3" fill="#ef4444" />
+            <circle cx={center + rAGI} cy={center} r="3" fill="#00f0ff" />
+            <circle cx={center} cy={center + rSTM} r="3" fill="#10b981" />
+            <circle cx={center - rINT} cy={center} r="3" fill="#c084fc" />
+            
+            {/* 軸ラベル */}
+            <text x={center} y={center - radius - 4} textAnchor="middle" fill="#ef4444" fontSize="8" fontWeight="bold">STR</text>
+            <text x={center + radius + 14} y={center + 3} textAnchor="middle" fill="#00f0ff" fontSize="8" fontWeight="bold">AGI</text>
+            <text x={center} y={center + radius + 11} textAnchor="middle" fill="#10b981" fontSize="8" fontWeight="bold">STM</text>
+            <text x={center - radius - 14} y={center + 3} textAnchor="middle" fill="#c084fc" fontSize="8" fontWeight="bold">INT</text>
+          </svg>
+        </div>
+      );
+    }
+
     function CharacterVisual({ gender, size = 180, animated = true }) {
       const isMale = gender === 'male';
       const imgSrc = isMale ? BOY_IMAGE : GIRL_IMAGE;
@@ -126,7 +193,7 @@
 
     function App() {
       const [player, setPlayer] = useState(() => {
-        const saved = localStorage.getItem('rpg_fitness_player_demon_v14');
+        const saved = localStorage.getItem('rpg_fitness_player_demon_v16');
         return saved ? JSON.parse(saved) : {
           name: 'HERO',
           gender: null, // 初回性別選択モーダル起動
@@ -152,6 +219,8 @@
       const [isLevelUp, setIsLevelUp] = useState(false);
       const [earnedExpEffect, setEarnedExpEffect] = useState(null);
       const [stageClearedModal, setStageClearedModal] = useState(null);
+      const [isEditingName, setIsEditingName] = useState(false);
+      const [tempName, setTempName] = useState(player.name || 'HERO');
 
       const [isListening, setIsListening] = useState(false);
       const [voiceFeedback, setVoiceFeedback] = useState('');
@@ -165,7 +234,7 @@
       }, [player.gender]);
 
       useEffect(() => {
-        localStorage.setItem('rpg_fitness_player_demon_v14', JSON.stringify(player));
+        localStorage.setItem('rpg_fitness_player_demon_v16', JSON.stringify(player));
       }, [player]);
 
       useEffect(() => {
@@ -194,12 +263,14 @@
 
         recognition.onstart = () => {
           setIsListening(true);
-          setVoiceFeedback('「ステータスオープン」と言ってください');
+          setVoiceFeedback('「ステータスオープン」または「ステータスクローズ」');
         };
         recognition.onresult = (e) => {
           const text = e.results[e.results.length - 1][0].transcript.trim().toLowerCase();
           setVoiceFeedback(`認識: "${text}"`);
-          if (text.includes('ステータス') || text.includes('オープン')) {
+          if (text.includes('クローズ') || text.includes('とじて') || text.includes('閉じて') || text.includes('閉じる') || text.includes('もどる') || text.includes('戻る') || text.includes('close')) {
+            setIsStatusOpen(false);
+          } else if (text.includes('ステータス') || text.includes('オープン') || text.includes('open')) {
             setIsStatusOpen(true);
           }
         };
@@ -216,6 +287,14 @@
         } else {
           try { recognitionRef.current.start(); } catch (e) {}
         }
+      };
+
+      const handleSaveName = () => {
+        const trimmed = tempName.trim();
+        if (trimmed) {
+          setPlayer({ ...player, name: trimmed });
+        }
+        setIsEditingName(false);
       };
 
       const handleRecord = () => {
@@ -567,7 +646,16 @@
                 <div className={`inline-block mt-2 px-3 py-0.5 rounded-full border text-xs font-bold ${
                   isMale ? 'bg-cyan-950/80 border-cyan-500/40 text-cyan-300' : 'bg-pink-950/80 border-pink-500/40 text-pink-300'
                 }`}>『{player.activeTitle}』</div>
-                <h2 className="mt-1 font-scifi font-black text-xl text-white">{player.name}</h2>
+                <div className="mt-1 flex items-center justify-center space-x-1.5">
+                  <h2 className="font-scifi font-black text-xl text-white tracking-wide">{player.name}</h2>
+                  <button 
+                    onClick={() => { setTempName(player.name); setIsEditingName(true); }}
+                    className="p-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-cyan-300 transition"
+                    title="名前を変更"
+                  >
+                    <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
                 <div className="text-xs font-scifi text-amber-300 font-bold">RANK: Lv.{player.level} ✦ 🪙 {player.gold} G</div>
               </div>
               <div className="mt-4 grid grid-cols-4 gap-1.5 text-center">
@@ -589,31 +677,74 @@
                 </div>
               </div>
 
-              {/* 称号一覧 */}
-              <div className="mt-4 space-y-1.5 pb-20">
-                <div className="text-xs font-bold text-amber-300 tracking-wider flex items-center space-x-1">
-                  <i data-lucide="award" className="w-3.5 h-3.5"></i>
-                  <span>獲得称号 (タップでセット)</span>
+              {/* 獲得称号 ＆ レーダーチャートの横並びエリア */}
+              <div className="mt-4 grid grid-cols-2 gap-2.5 items-start pb-20">
+                {/* 左側：称号一覧 */}
+                <div className="space-y-1.5 bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800 h-full flex flex-col justify-between">
+                  <div>
+                    <div className="text-[11px] font-bold text-amber-300 tracking-wider flex items-center space-x-1 mb-1.5">
+                      <i data-lucide="award" className="w-3.5 h-3.5"></i>
+                      <span>獲得称号</span>
+                    </div>
+                    <div className="flex flex-col gap-1 max-h-40 overflow-y-auto pr-0.5">
+                      {player.unlockedTitles.map((title) => (
+                        <button
+                          key={title}
+                          onClick={() => setPlayer({ ...player, activeTitle: title })}
+                          className={`text-[10px] text-left px-2 py-1 rounded-lg border transition truncate ${
+                            player.activeTitle === title 
+                              ? (isMale ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold shadow-neon-cyan' : 'bg-pink-500/20 border-pink-400 text-pink-300 font-bold shadow-neon-pink')
+                              : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700'
+                          }`}
+                        >
+                          {title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-[9px] text-slate-500 text-center pt-1 border-t border-slate-800/80">タップでセット</div>
                 </div>
-                <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
-                  {player.unlockedTitles.map((title) => (
-                    <button
-                      key={title}
-                      onClick={() => setPlayer({ ...player, activeTitle: title })}
-                      className={`text-xs px-2.5 py-1 rounded-lg border transition ${
-                        player.activeTitle === title 
-                          ? (isMale ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold shadow-neon-cyan' : 'bg-pink-500/20 border-pink-400 text-pink-300 font-bold shadow-neon-pink')
-                          : 'bg-slate-900/70 border-slate-800 text-slate-400'
-                      }`}
-                    >
-                      {title}
-                    </button>
-                  ))}
-                </div>
+
+                {/* 右側：レーダーチャート */}
+                <RadarChart stats={player.stats} size={135} isMale={isMale} />
               </div>
               <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-gradient-to-t from-black to-transparent">
                   <button onClick={() => setIsStatusOpen(false)} className="w-full py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-scifi font-bold transition hover:text-white">CLOSE Interface</button>
               </div>
+
+              {/* 名前変更ダイアログ */}
+              {isEditingName && (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                  <div className="bg-slate-900 border border-cyan-500/50 rounded-2xl p-5 w-full max-w-xs space-y-4 shadow-neon-cyan">
+                    <div className="text-center">
+                      <div className="font-scifi text-sm font-bold text-cyan-300">CHANGE NAME</div>
+                      <p className="text-[11px] text-slate-400 mt-1">冒険者の新しい名前を入力してください</p>
+                    </div>
+                    <input 
+                      type="text" 
+                      maxLength="12"
+                      value={tempName} 
+                      onChange={(e) => setTempName(e.target.value)}
+                      placeholder="名前を入力"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center text-sm font-bold text-white focus:outline-none focus:border-cyan-400"
+                    />
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => setIsEditingName(false)}
+                        className="flex-1 py-2 rounded-xl bg-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-700"
+                      >
+                        キャンセル
+                      </button>
+                      <button 
+                        onClick={handleSaveName}
+                        className="flex-1 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-xs font-bold text-slate-950 shadow-neon-cyan"
+                      >
+                        変更する
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
