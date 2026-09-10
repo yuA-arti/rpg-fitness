@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>RPG Fitness: Status Quest - 冒険者ギルド編</title>
+  <title>RPG Fitness: Status Quest</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -19,13 +19,15 @@
               black: '#070913',
               card: '#121829',
               cyan: '#00f0ff',
+              purple: '#b026ff',
               pink: '#ff4d94',
               gold: '#ffd166',
             }
           },
           boxShadow: {
-            'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.45)',
-            'neon-pink': '0 0 15px rgba(255, 77, 148, 0.45)',
+            'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.4)',
+            'neon-purple': '0 0 15px rgba(176, 38, 255, 0.45)',
+            'neon-pink': '0 0 15px rgba(255, 77, 148, 0.4)',
             'neon-gold': '0 0 20px rgba(255, 209, 102, 0.5)',
           }
         }
@@ -54,52 +56,24 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // 軽量SVGアバター
-    function CharacterVisual({ gender, size = 160 }) {
-      const isMale = gender === 'male';
-      return (
-        <div className="flex items-center justify-center" style={{ width: size, height: size }}>
-          {isMale ? (
-            <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-lg">
-              <circle cx="60" cy="60" r="54" fill="#0f172a" stroke="#00f0ff" strokeWidth="3" />
-              <path d="M40 38 Q60 20 80 38 Q85 55 60 55 Q35 55 40 38" fill="#38bdf8" />
-              <circle cx="60" cy="56" r="22" fill="#fed7aa" />
-              <circle cx="52" cy="54" r="3" fill="#0f172a" />
-              <circle cx="68" cy="54" r="3" fill="#0f172a" />
-              <path d="M56 64 Q60 67 64 64" stroke="#0f172a" strokeWidth="2" fill="none" />
-              <path d="M35 100 Q60 76 85 100" fill="#0284c7" />
-              <path d="M50 78 L70 78 L65 96 L55 96 Z" fill="#e2e8f0" stroke="#94a3b8" />
-              <polygon points="60,24 64,32 72,32 66,37 68,45 60,40 52,45 54,37 48,32 56,32" fill="#ffd166" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-lg">
-              <circle cx="60" cy="60" r="54" fill="#0f172a" stroke="#ff4d94" strokeWidth="3" />
-              <path d="M32 40 Q60 16 88 40 Q94 75 88 85 L80 60 Q60 52 40 60 L32 85 Z" fill="#fb7185" />
-              <circle cx="60" cy="56" r="22" fill="#fed7aa" />
-              <circle cx="52" cy="54" r="3" fill="#0f172a" />
-              <circle cx="68" cy="54" r="3" fill="#0f172a" />
-              <path d="M56 64 Q60 68 64 64" stroke="#e11d48" strokeWidth="2" fill="none" />
-              <path d="M35 100 Q60 76 85 100" fill="#e11d48" />
-              <path d="M48 78 L72 78 L68 96 L52 96 Z" fill="#ffd166" />
-              <circle cx="38" cy="42" r="5" fill="#f43f5e" />
-              <circle cx="82" cy="42" r="5" fill="#f43f5e" />
-            </svg>
-          )}
-        </div>
-      );
-    }
-
-    // 4ステータス & タスクプリセット
+    // 4ステータス × 各3種 ＝ 全12種の鍛錬プリセット
     const PRESETS = [
+      // 筋力 (STR)
       { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'dumbbell' },
-      { id: 'situps', name: '腹筋 / クランチ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'shield' },
+      { id: 'situps', name: '腹筋', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'shield' },
       { id: 'squats', name: 'スクワット', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'zap' },
+      // 俊敏 (AGI)
       { id: 'running', name: 'ランニング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, icon: 'flame' },
-      { id: 'walking', name: 'ウォーキング / 早歩き', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, icon: 'activity' },
+      { id: 'walking', name: 'ウォーキング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, icon: 'activity' },
+      { id: 'jump_rope', name: '縄跳び / バーピー', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 10, stepVal: 10, gain: 3, icon: 'wind' },
+      // 柔軟 (FEX)
       { id: 'stretch', name: 'ストレッチ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, icon: 'heart' },
-      { id: 'yoga', name: 'ヨガ / 体幹トレ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, icon: 'sparkles' },
+      { id: 'yoga', name: 'ヨガ / 体幹', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, icon: 'sparkles' },
+      { id: 'splits', name: '開脚 / 股関節柔軟', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, icon: 'smile' },
+      // 知力 (INT)
       { id: 'reading', name: '読書', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, icon: 'book-open' },
       { id: 'study', name: '勉強 / 資格学習', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, icon: 'brain' },
+      { id: 'language', name: '言語学習 / 暗記', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, icon: 'languages' },
     ];
 
     const RANK_THRESHOLDS = [
@@ -178,78 +152,166 @@
       }
     }
 
-    // 冒険者ギルド 依頼リスト
+    // 冒険者ギルド 依頼リスト（知力系・高ランク帯を大幅増量）
     const GUILD_QUESTS = [
+      // Fランク
       {
-        id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '街の近くの草原で傷薬に使う薬草を採取する。',
+        id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。',
         reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 },
-        failLogs: { intelligence: '毒草と見分けがつかなかった。【読書/勉強】で知力を鍛えよう！', flexibility: '斜面で足腰が硬く滑落してしまった。【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
-        rewardGold: 8, rewardTitle: '草原の採取者', icon: 'sprout'
+        failLogs: { intelligence: '毒草と見分けがつかなかった。【読書/勉強/言語学習】で知力を鍛えよう！', flexibility: '斜面で足腰が硬く滑落してしまった。【ストレッチ/ヨガ/開脚】で柔軟を鍛えよう！' },
+        rewardGold: 8, rewardTitle: '草原の採取者'
       },
       {
         id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。',
         reqTypes: ['筋力'], reqStats: { strength: 8 },
-        failLogs: { strength: '腕力が足りずバケツを引き上げきれなかった。【腕立て/腹筋/スクワット】で筋力を鍛えよう！' },
-        rewardGold: 10, rewardTitle: '奉仕の掃除人', icon: 'droplet'
+        failLogs: { strength: '腕力が足りず重い泥を引き上げきれなかった。【腕立て/腹筋/スクワット】で筋力を鍛えよう！' },
+        rewardGold: 10, rewardTitle: '奉仕の掃除人'
       },
       {
         id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。',
         reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 },
-        failLogs: { agility: '走るスピードが遅く見失ってしまった。【ランニング/ウォーキング】で俊敏を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
-        rewardGold: 10, rewardTitle: '迷い猫の救い手', icon: 'smile'
+        failLogs: { agility: '走るスピードが遅く見失った。【ランニング/ウォーキング/縄跳び】で俊敏を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【ストレッチ/ヨガ/開脚】で柔軟を鍛えよう！' },
+        rewardGold: 10, rewardTitle: '迷い猫の救い手'
       },
+      {
+        id: 'f4', rank: 'F', name: 'ギルド書庫の羊皮紙整理', desc: '乱雑に積まれた古い文献を読み解き仕分ける。',
+        reqTypes: ['知力'], reqStats: { intelligence: 8 },
+        failLogs: { intelligence: '古代文字が読めず整理が進まなかった。【読書/勉強/言語学習】で知力を鍛えよう！' },
+        rewardGold: 9, rewardTitle: '書庫の見習い手'
+      },
+
+      // Eランク
       {
         id: 'e1', rank: 'E', name: 'ジャイアントラット駆除', desc: '食料庫を荒らす巨大ネズミの群れを仕留める。',
         reqTypes: ['俊敏'], reqStats: { agility: 15 },
-        failLogs: { agility: '踏み込みが遅い！俊敏な動きに翻弄された。【ランニング/ウォーキング】で俊敏を鍛えよう！' },
-        rewardGold: 20, rewardTitle: '害獣ハンター', icon: 'bug'
+        failLogs: { agility: '踏み込みが遅い！俊敏な動きに翻弄された。【ランニング/ウォーキング/縄跳び】で俊敏を鍛えよう！' },
+        rewardGold: 20, rewardTitle: '害獣ハンター'
       },
       {
         id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。',
         reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 },
-        failLogs: { strength: 'パワー負け！突進に弾き飛ばされた。【腕立て/腹筋/スクワット】で筋力を鍛えよう！', flexibility: '衝撃を体幹で逃がしきれなかった。【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
-        rewardGold: 25, rewardTitle: '畑の守護者', icon: 'shield-alert'
+        failLogs: { strength: 'パワー負け！突進に弾き飛ばされた。【腕立て/腹筋/スクワット】で筋力を鍛えよう！', flexibility: '衝撃を体幹で受け流せなかった。【ストレッチ/ヨガ/開脚】で柔軟を鍛えよう！' },
+        rewardGold: 25, rewardTitle: '畑の守護者'
       },
+      {
+        id: 'e3', rank: 'E', name: '初級魔法スクロールの解読', desc: '魔力暴走を起こした巻物の呪文式を冷静に分析する。',
+        reqTypes: ['知力'], reqStats: { intelligence: 18 },
+        failLogs: { intelligence: '呪文式の解読が追いつかず暴走した！【読書/勉強/言語学習】で知力を鍛えよう！' },
+        rewardGold: 24, rewardTitle: '魔導の書生'
+      },
+
+      // Dランク
       {
         id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。',
         reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 },
-        failLogs: { strength: '打ち込みが浅く倒しきれなかった。【腕立て/スクワット】で筋力を鍛えよう！', agility: '機敏なステップについていけなかった。【ランニング】で俊敏を鍛えよう！' },
-        rewardGold: 60, rewardTitle: '斥候スレイヤー', icon: 'swords'
+        failLogs: { strength: '打ち込みが浅く倒しきれなかった。【腕立て/スクワット】で筋力を鍛えよう！', agility: '機敏なステップについていけなかった。【ランニング/縄跳び】で俊敏を鍛えよう！' },
+        rewardGold: 60, rewardTitle: '斥候スレイヤー'
       },
+      {
+        id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。',
+        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 },
+        failLogs: { intelligence: '除霊呪文の構成にミスがあった！【読書/勉強/言語学習】で知力を鍛えよう！', flexibility: '怪異の衝撃波をしなやかに受け流せなかった。【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
+        rewardGold: 65, rewardTitle: '鎮魂の術士'
+      },
+      {
+        id: 'd3', rank: 'D', name: '盗賊団の暗号通信解読', desc: '街道を脅かす盗賊の密書を解析し奇襲を防ぐ。',
+        reqTypes: ['知力'], reqStats: { intelligence: 35 },
+        failLogs: { intelligence: '暗号の法則を見抜けなかった！【読書/勉強/言語学習】で知力を鍛えよう！' },
+        rewardGold: 70, rewardTitle: '見抜く眼'
+      },
+
+      // Cランク
       {
         id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。',
         reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 },
         failLogs: { strength: '重い棍棒に力負けし弾かれた！【腕立て/スクワット】で筋力を鍛えよう！', flexibility: '強烈な打撃を受け止めきれなかった！【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
-        rewardGold: 150, rewardTitle: '豪傑の武芸者', icon: 'hammer'
+        rewardGold: 150, rewardTitle: '豪傑の武芸者'
       },
+      {
+        id: 'c2', rank: 'C', name: '幻影の魔術師の結界破り', desc: '迷いの森に展開された偽りの幻術結界の核を看破する。',
+        reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 60, agility: 50 },
+        failLogs: { intelligence: '幻術のカラクリを見抜けず道に迷った！【読書/勉強】で知力を鍛えよう！', agility: '結界の歪みへ飛び込む瞬発力が足りなかった。【ランニング/縄跳び】で俊敏を鍛えよう！' },
+        rewardGold: 160, rewardTitle: '幻影を暴く者'
+      },
+      {
+        id: 'c3', rank: 'C', name: '古代錬金ゴーレムの暴走停止', desc: '暴走する泥人形の魔導回路を解析し弱点を突く。',
+        reqTypes: ['知力', '筋力'], reqStats: { intelligence: 55, strength: 50 },
+        failLogs: { intelligence: '魔力回路の急所が見抜けなかった！【読書/勉強】で知力を鍛えよう！', strength: '弱点への一撃を打ち込むパワーが足りない！【腕立て/スクワット】で筋力を鍛えよう！' },
+        rewardGold: 165, rewardTitle: '錬金の解体士'
+      },
+
+      // Bランク
       {
         id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '単体で砦を半壊させる巨大牛頭魔獣との決闘。',
         reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 },
-        failLogs: { strength: '破壊力が桁違いだ！真っ向勝負で押し切られた。【腕立て】で筋力を極限まで高めよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【ストレッチ】で柔軟を極めよう！' },
-        rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー', icon: 'skull'
+        failLogs: { strength: '破壊力が桁違いだ！押し切られた。【腕立て】で筋力を極限まで高めよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【ストレッチ】で柔軟を極めよう！' },
+        rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー'
       },
       {
-        id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王。',
+        id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王との知恵比べ。',
         reqTypes: ['知力'], reqStats: { intelligence: 95 },
         failLogs: { intelligence: '術式の展開速度で圧倒された！【読書/勉強】で知力を極限まで高めよう！' },
-        rewardGold: 380, rewardTitle: '深淵の解読者', icon: 'book'
+        rewardGold: 380, rewardTitle: '深淵の解読者'
       },
       {
-        id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '超高速で滑空するワイバーンを射抜く。',
+        id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する超難解な古代遺跡の大扉を開錠する。',
+        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 },
+        failLogs: { intelligence: '星盤の方程式が読み解けない！【読書/勉強/言語学習】で知力を鍛えよう！', flexibility: '狭隘な仕掛けの奥へ身体を滑り込ませられなかった。【ストレッチ/開脚】で柔軟を極めよう！' },
+        rewardGold: 360, rewardTitle: '星辰の解読士'
+      },
+      {
+        id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '複数属性のブレスを撃ち分ける合成魔獣を頭脳と身軽さで翻弄する。',
+        reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 85, agility: 85 },
+        failLogs: { intelligence: 'ブレスの予備動作の法則を見失った！【読書/勉強】で知力を鍛えよう！', agility: '炎と毒の同時射撃をかわせなかった！【ランニング/縄跳び】で俊敏を鍛えよう！' },
+        rewardGold: 370, rewardTitle: '多頭獣狩り'
+      },
+
+      // Aランク
+      {
+        id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '超高速で滑空するワイバーンの急所を風を読んで射抜く。',
         reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 },
-        failLogs: { agility: '照準が追いつかない！【ランニング】で俊敏を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【読書/勉強】で知力を研ぎ澄まそう！' },
-        rewardGold: 700, rewardTitle: '竜殺しの鷹目', icon: 'crosshair'
+        failLogs: { agility: '照準が追いつかない！【ランニング/縄跳び】で俊敏を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【読書/勉強】で知力を研ぎ澄まそう！' },
+        rewardGold: 700, rewardTitle: '竜殺しの鷹目'
       },
       {
-        id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。',
+        id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲と高位魔法障壁を同時に纏う古代兵器。',
+        reqTypes: ['筋力', '知力'], reqStats: { strength: 130, intelligence: 130 },
+        failLogs: { strength: '装甲が硬すぎる！刃が弾き返された。【腕立て/スクワット】で筋力を極限まで鍛えよう！', intelligence: '魔力障壁の解除コードが解読できない！【読書/勉強】で知力を極限まで高めよう！' },
+        rewardGold: 750, rewardTitle: '古代の解縛者'
+      },
+      {
+        id: 'a3', rank: 'A', name: '禁忌の降霊儀式・絶対結界遮断', desc: '都市一つを壊滅させる邪神降霊陣の詠唱を逆算し無効化する。',
+        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 145, flexibility: 125 },
+        failLogs: { intelligence: '禁忌の術式反転についていけない！【読書/勉強】で知の極致を目指そう！', flexibility: '魔力逆流の激震を受け流せず気絶した！【ストレッチ/ヨガ】で柔軟を極めよう！' },
+        rewardGold: 780, rewardTitle: '天理の大賢者'
+      },
+      {
+        id: 'a4', rank: 'A', name: '魔界大公アスタロスの幻影討伐', desc: '空間を歪め思考を狂わせる上位悪魔の精神攻撃を打ち破る。',
+        reqTypes: ['知力', '筋力', '俊敏'], reqStats: { intelligence: 135, strength: 125, agility: 125 },
+        failLogs: { intelligence: '悪魔の幻惑に思考を奪われた！【読書/勉強】で精神と知力を研ぎ澄まそう！', strength: '実体化した悪魔の爪を受け止めきれない！【筋トレ】で筋力を鍛えよう！', agility: '空間転移のスピードを捉えきれない！【有酸素】で俊敏を鍛えよう！' },
+        rewardGold: 820, rewardTitle: '虚空の調伏師'
+      },
+
+      // S / EXランク
+      {
+        id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災。人類の未来を守る決戦。',
         reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 },
         failLogs: {
-          strength: '巨体を崩すパワーが足りない！【腕立て】で筋力を鍛えよう！',
-          agility: 'ブレスを回避するスピードが足りない！【ランニング】で俊敏を鍛えよう！',
-          flexibility: '衝撃波をいなしきれない！【ストレッチ】で柔軟を鍛えよう！',
-          intelligence: '絶対結界を見破れない！【勉強】で知力を極めよう！'
+          strength: '巨体を崩すパワーが足りない！【腕立て/スクワット】で筋力を極めよう！',
+          agility: 'ブレスを回避するスピードが足りない！【ランニング/縄跳び】で俊敏を極めよう！',
+          flexibility: '衝撃波をいなしきれない！【ストレッチ/ヨガ】で柔軟を極めよう！',
+          intelligence: '絶対結界の真理を見破れない！【勉強/読書】で森羅万象の知力を極めよう！'
         },
-        rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者', icon: 'crown'
+        rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者'
+      },
+      {
+        id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の創世から終末までの全真理を脳内に取り込み調和させる。',
+        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 },
+        failLogs: {
+          intelligence: '世界の膨大な知識量に耐えきれず意識が混濁した！【読書/勉強】で究極の知力を極めよう！',
+          flexibility: '神気の奔流に魂と肉体が耐えきれなかった！【ストレッチ/ヨガ】でしなやかな心身を極めよう！'
+        },
+        rewardGold: 3000, rewardTitle: '神域の全知者'
       }
     ];
 
@@ -258,32 +320,35 @@
         const saved = localStorage.getItem('rpg_fitness_player_guild_v19');
         return saved ? JSON.parse(saved) : {
           name: 'HERO',
-          gender: 'male',
+          themeColor: 'cyan',
+          customAvatar: null,
           gold: 30,
           stats: { strength: 0, agility: 0, flexibility: 0, intelligence: 0 },
           lastTrainedDates: { strength: null, agility: null, flexibility: null, intelligence: null },
           activeTitle: '見習い冒険者',
           unlockedTitles: ['見習い冒険者'],
-          completedQuests: [],
-          streakCount: 1,
+          dailyClearedQuests: [], // 本日クリアした依頼ID（日付変更でリセット）
           lastActiveDate: null,
           isCamping: false,
           logs: []
         };
       });
 
+      const [activeTab, setActiveTab] = useState('train');
       const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
       const [inputValue, setInputValue] = useState(PRESETS[0].defaultVal);
       const [isStatusOpen, setIsStatusOpen] = useState(false);
       const [selectedRankTab, setSelectedRankTab] = useState('F');
       const [questResultModal, setQuestResultModal] = useState(null);
       const [innBillNotice, setInnBillNotice] = useState(null);
+      const [alreadyClearedNotice, setAlreadyClearedNotice] = useState(false);
 
       const [timerSeconds, setTimerSeconds] = useState(0);
       const [isTimerRunning, setIsTimerRunning] = useState(false);
       const timerIntervalRef = useRef(null);
+      const fileInputRef = useRef(null);
 
-      // 初回起動時の生活費引き落とし & 減衰
+      // 日付変更チェック：生活費引き落とし ＆ 減衰 ＆ 本日クリア状況リセット
       useEffect(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -316,7 +381,7 @@
               gold: newGold,
               stats: newStats,
               lastActiveDate: todayTime,
-              streakCount: diffDays === 1 ? prev.streakCount + 1 : 1,
+              dailyClearedQuests: [], // 翌日になったのでクリア状況を完全リセット！
               isCamping: camping
             }));
 
@@ -333,7 +398,7 @@
 
       useEffect(() => {
         if (window.lucide) window.lucide.createIcons();
-      }, [selectedPreset, isStatusOpen, selectedRankTab, questResultModal, innBillNotice, player]);
+      }, [activeTab, selectedPreset, isStatusOpen, selectedRankTab, questResultModal, innBillNotice, alreadyClearedNotice, player]);
 
       // タイマー管理
       useEffect(() => {
@@ -354,7 +419,22 @@
       const overall = calculateOverallRank(player.stats);
       const currentJob = determineJob(player.stats);
 
-      // タスク記録
+      const cycleThemeColor = () => {
+        const colors = ['cyan', 'purple', 'pink'];
+        const nextIdx = (colors.indexOf(player.themeColor || 'cyan') + 1) % colors.length;
+        setPlayer(prev => ({ ...prev, themeColor: colors[nextIdx] }));
+      };
+
+      const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setPlayer(prev => ({ ...prev, customAvatar: event.target.result }));
+        };
+        reader.readAsDataURL(file);
+      };
+
       const handleRecord = () => {
         const amount = Number(inputValue);
         if (!amount || amount <= 0) return;
@@ -377,8 +457,14 @@
         if (window.confetti) window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
       };
 
-      // 依頼挑戦
+      // 依頼挑戦処理（当日クリア済みなら警告表示）
       const handleAttemptQuest = (quest) => {
+        const clearedList = player.dailyClearedQuests || [];
+        if (clearedList.includes(quest.id)) {
+          setAlreadyClearedNotice(true);
+          return;
+        }
+
         let isSuccess = true;
         const details = [];
         const statNameMap = { strength: '筋力', agility: '俊敏', flexibility: '柔軟', intelligence: '知力' };
@@ -408,44 +494,61 @@
             updatedTitles.push(quest.rewardTitle);
           }
 
-          const completed = [...player.completedQuests];
-          if (!completed.includes(quest.id)) completed.push(quest.id);
+          // 本日達成リストに追加
+          const newDailyCleared = [...clearedList, quest.id];
 
           setPlayer(prev => ({
             ...prev,
             gold: newGold,
             unlockedTitles: updatedTitles,
-            completedQuests: completed,
+            dailyClearedQuests: newDailyCleared,
             isCamping: nowCamping
           }));
 
-          setQuestResultModal({
-            quest, success: true, details, wasCampingRecovered: wasCamping && !nowCamping
-          });
+          setQuestResultModal({ quest, success: true, details, wasCampingRecovered: wasCamping && !nowCamping });
           if (window.confetti) window.confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
         } else {
           setQuestResultModal({ quest, success: false, details });
         }
       };
 
-      const isMale = player.gender === 'male';
-      const themeColor = isMale ? 'text-cyan-400' : 'text-pink-400';
-      const themeBorder = isMale ? 'border-cyan-500/40' : 'border-pink-500/40';
+      const theme = player.themeColor || 'cyan';
+      const themeText = theme === 'cyan' ? 'text-cyan-400' : theme === 'purple' ? 'text-purple-400' : 'text-pink-400';
+      const themeBorder = theme === 'cyan' ? 'border-cyan-500/40' : theme === 'purple' ? 'border-purple-500/40' : 'border-pink-500/40';
+      const themeBtn = theme === 'cyan' ? 'bg-cyan-500 text-slate-950' : theme === 'purple' ? 'bg-purple-600 text-white' : 'bg-pink-500 text-white';
+      const themeShadow = theme === 'cyan' ? 'shadow-neon-cyan' : theme === 'purple' ? 'shadow-neon-purple' : 'shadow-neon-pink';
 
       const filteredQuests = GUILD_QUESTS.filter(q => q.rank === selectedRankTab);
+      const dailyCleared = player.dailyClearedQuests || [];
 
       return (
-        <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-24 bg-[#090c16] border-x border-slate-800 shadow-2xl">
+        <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-28 bg-[#090c16] border-x border-slate-800 shadow-2xl">
           
+          <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
+
           {/* ヘッダー */}
-          <header className="p-3 border-b border-slate-800 bg-[#0e1222]/90 backdrop-blur sticky top-0 z-20 flex justify-between items-center">
+          <header className="p-3 border-b border-slate-800 bg-[#0e1222]/95 backdrop-blur sticky top-0 z-30 flex justify-between items-center">
             <div className="flex items-center space-x-2.5">
-              <div onClick={() => setIsStatusOpen(true)} className={`w-11 h-11 rounded-2xl border flex items-center justify-center cursor-pointer p-0.5 ${themeBorder}`}>
-                <CharacterVisual gender={player.gender} size={38} />
+              <div 
+                onClick={() => fileInputRef.current.click()} 
+                title="タップして好きな画像に変更"
+                className={`w-11 h-11 rounded-2xl border flex items-center justify-center cursor-pointer overflow-hidden p-0.5 bg-slate-900 ${themeBorder} ${themeShadow} relative group`}
+              >
+                {player.customAvatar ? (
+                  <img src={player.customAvatar} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
+                ) : (
+                  <div className="text-center">
+                    <i data-lucide="image-plus" className="w-5 h-5 text-slate-400 group-hover:text-white"></i>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[8px] text-white font-bold transition">
+                  変更
+                </div>
               </div>
+
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className={`font-scifi text-sm font-black ${themeColor}`}>Rank {overall.rank}</span>
+                  <span className={`font-scifi text-sm font-black ${themeText}`}>Rank {overall.rank}</span>
                   <span className={`text-xs font-bold font-scifi ${player.gold < 0 ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
                     🪙 {player.gold} G
                   </span>
@@ -457,33 +560,32 @@
             </div>
 
             <button 
-              onClick={() => setPlayer(p => ({ ...p, gender: p.gender === 'male' ? 'female' : 'male' }))}
-              className="px-2.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-[11px] font-bold hover:text-white"
+              onClick={cycleThemeColor}
+              className="px-2.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-200 text-xs font-bold flex items-center space-x-1 hover:border-slate-500 transition"
             >
-              {player.gender === 'male' ? '👦 男' : '👧 女'} 切替
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme === 'cyan' ? '#00f0ff' : theme === 'purple' ? '#b026ff' : '#ff4d94' }}></span>
+              <span>{theme === 'cyan' ? 'シアン' : theme === 'purple' ? 'パープル' : 'ピンク'}</span>
             </button>
           </header>
 
           {/* 野宿バナー */}
           {player.isCamping && (
-            <div className="mx-3 mt-2 p-2 rounded-xl bg-red-950/90 border border-red-500/80 text-red-200 text-xs flex items-center justify-between">
-              <div>
-                <div className="font-bold text-[11px] text-red-300">⚠️【野宿生活】能力上昇値が半減中！</div>
-                <div className="text-[9px] text-slate-300">宿代が尽きました。依頼をクリアして宿代を稼ぎましょう！</div>
-              </div>
+            <div className="mx-3 mt-2 p-2 rounded-xl bg-red-950/90 border border-red-500/80 text-red-200 text-xs">
+              <div className="font-bold text-[11px] text-red-300">⚠️【野宿生活】能力上昇値が半減中！</div>
+              <div className="text-[9px] text-slate-300">宿代が尽きました。依頼タブで日銭を稼ぎましょう！</div>
             </div>
           )}
 
-          {/* メインエリア */}
+          {/* メイン画面 */}
           <main className="p-3.5 flex-1 space-y-3">
             
-            {/* ステータスカード */}
+            {/* ステータス概要 */}
             <div className={`rounded-2xl border bg-gradient-to-b from-[#141829] to-[#0d101e] p-3 shadow-lg ${themeBorder} space-y-2`}>
               <div className="flex justify-between items-center">
                 <span className="text-[11px] text-amber-300 font-bold bg-black/40 px-2 py-0.5 rounded-full border border-amber-400/30">
-                  🔥 鍛錬継続 {player.streakCount} 日目
+                  🔥 鍛錬継続中
                 </span>
-                <span className={`font-scifi font-black text-sm ${themeColor}`}>冒険者 Rank {overall.rank}</span>
+                <span className={`font-scifi font-black text-xs ${themeText}`}>格付: Rank {overall.rank}</span>
               </div>
 
               <div className="grid grid-cols-4 gap-1.5 pt-1 text-center font-mono">
@@ -510,160 +612,215 @@
               </div>
             </div>
 
-            {/* 冒険者ギルド 依頼ボード */}
-            <div className="bg-slate-900/90 border border-amber-500/40 rounded-2xl p-3 space-y-2.5 shadow-xl">
-              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-                <span className="font-bold text-xs text-slate-100 tracking-wider">📜 冒険者ギルド 依頼ボード</span>
-                <span className="text-[10px] text-slate-400">適正: <strong className="text-amber-300 font-scifi font-bold">Rank {overall.rank}</strong></span>
-              </div>
+            {/* ① 鍛錬（トレーニング）タブ：運動メニュー最上部 */}
+            {activeTab === 'train' && (
+              <div className="space-y-3">
+                {/* クエストタイマー */}
+                <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex items-center justify-between shadow-lg">
+                  <div>
+                    <div className="text-[10px] text-slate-400 font-bold">QUEST TIMER</div>
+                    <div className="font-scifi font-black text-xl text-white tracking-widest">{formatTimer(timerSeconds)}</div>
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <button
+                      onClick={() => setIsTimerRunning(!isTimerRunning)}
+                      className={`px-3.5 py-2 rounded-xl font-bold text-xs transition ${
+                        isTimerRunning ? 'bg-amber-500 text-slate-950' : themeBtn
+                      }`}
+                    >
+                      {isTimerRunning ? "一時停止" : "スタート"}
+                    </button>
+                    {timerSeconds > 0 && (
+                      <button
+                        onClick={() => { setIsTimerRunning(false); setInputValue(Math.max(1, Math.round(timerSeconds / 60))); }}
+                        className="px-2.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold"
+                      >
+                        反映
+                      </button>
+                    )}
+                  </div>
+                </div>
 
-              {/* ランク切り替えタブ */}
-              <div className="flex space-x-1 overflow-x-auto pb-1">
-                {['F', 'E', 'D', 'C', 'B', 'A', 'S'].map(r => (
-                  <button
-                    key={r}
-                    onClick={() => setSelectedRankTab(r)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-scifi font-bold flex-1 text-center transition ${
-                      selectedRankTab === r ? 'bg-amber-500 text-slate-950 shadow-lg' : 'bg-slate-800/60 text-slate-400 border border-slate-700/60'
-                    }`}
-                  >
-                    {r}級
-                  </button>
-                ))}
-              </div>
+                {/* 記録入力欄 */}
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 space-y-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-200 font-bold text-sm">{selectedPreset.name} ({selectedPreset.unit})</span>
+                    <span className="text-cyan-400 font-mono text-xs">
+                      上昇見込: <strong className="text-white text-base">+{Math.max(1, Math.floor(inputValue / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1))}</strong> ({selectedPreset.statName})
+                    </span>
+                  </div>
+                  <div className="flex space-x-1.5">
+                    {[10, 20, 30, 50].map(num => (
+                      <button key={num} onClick={() => setInputValue(num)} className="flex-1 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300 hover:border-slate-500">
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center space-x-2 pt-1">
+                    <input
+                      type="number" min="1" max="999" value={inputValue}
+                      onChange={(e) => setInputValue(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-24 bg-slate-950 border-2 border-slate-700 rounded-xl py-2 text-center text-xl font-scifi font-bold text-white focus:outline-none focus:border-cyan-400"
+                    />
+                    <button
+                      onClick={handleRecord}
+                      className={`flex-1 font-black py-3 rounded-xl text-xs font-scifi active:scale-95 transition ${themeBtn} ${themeShadow}`}
+                    >
+                      TRAIN COMPLETED
+                    </button>
+                  </div>
+                </div>
 
-              {/* 依頼一覧 */}
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-0.5">
-                {filteredQuests.map(q => {
-                  const isDone = player.completedQuests.includes(q.id);
-                  return (
-                    <div key={q.id} className="p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 space-y-1.5">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-bold text-xs text-white flex items-center space-x-1">
-                            <span>{q.name}</span>
-                            {isDone && <span className="text-[9px] text-amber-400 bg-amber-950/80 px-1 rounded border border-amber-500/40">済</span>}
-                          </div>
-                          <div className="text-[10px] text-slate-400">{q.desc}</div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center pt-1 border-t border-slate-800/80 text-[10px]">
-                        <div className="text-slate-400">
-                          要求: <span className="text-cyan-300 font-bold">{q.reqTypes.join(' ＋ ')}</span>
-                          <span className="text-amber-300 font-bold ml-2">🪙 +{q.rewardGold}G</span>
-                        </div>
+                {/* 鍛錬メニュー選択（各ステータス3種・計12種） */}
+                <div className="space-y-1.5">
+                  <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択（4属性 × 各3種）</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {PRESETS.map(p => {
+                      const isSelected = selectedPreset.id === p.id;
+                      return (
                         <button
-                          onClick={() => handleAttemptQuest(q)}
-                          className={`px-3 py-1 rounded-lg font-bold text-xs active:scale-95 transition ${
-                            isMale ? 'bg-cyan-500 text-slate-950' : 'bg-pink-500 text-white'
+                          key={p.id}
+                          onClick={() => { setSelectedPreset(p); setInputValue(p.defaultVal); }}
+                          className={`p-2.5 rounded-xl border transition text-left flex flex-col justify-between ${
+                            isSelected 
+                              ? `bg-slate-900 border-${theme === 'cyan' ? 'cyan-400' : theme === 'purple' ? 'purple-400' : 'pink-400'} text-white ${themeShadow}`
+                              : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
                           }`}
                         >
-                          挑戦する
+                          <span className="text-xs font-bold truncate text-white">{p.name}</span>
+                          <div className="mt-1.5 flex justify-between items-center text-[10px]">
+                            <span className="text-slate-400">{p.statName}</span>
+                            <span className={`font-mono font-bold ${themeText}`}>+{p.gain}</span>
+                          </div>
                         </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* クエストタイマー */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between shadow-lg">
-              <div>
-                <div className="text-[10px] text-slate-400 font-bold">QUEST TIMER</div>
-                <div className="font-scifi font-black text-lg text-white tracking-widest">{formatTimer(timerSeconds)}</div>
-              </div>
-              <div className="flex items-center space-x-1.5">
-                <button
-                  onClick={() => setIsTimerRunning(!isTimerRunning)}
-                  className={`px-3 py-1.5 rounded-lg font-bold text-xs transition ${
-                    isTimerRunning ? 'bg-amber-500 text-slate-950' : (isMale ? 'bg-cyan-500 text-slate-950' : 'bg-pink-500 text-white')
-                  }`}
-                >
-                  {isTimerRunning ? "一時停止" : "スタート"}
-                </button>
-                {timerSeconds > 0 && (
-                  <button
-                    onClick={() => { setIsTimerRunning(false); setInputValue(Math.max(1, Math.round(timerSeconds / 60))); }}
-                    className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold"
-                  >
-                    反映
-                  </button>
-                )}
-              </div>
-            </div>
+            {/* ② 冒険者ギルド（依頼）タブ */}
+            {activeTab === 'guild' && (
+              <div className="space-y-3">
+                <div className="bg-slate-900/90 border border-amber-500/40 rounded-2xl p-3 space-y-2.5 shadow-xl">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <span className="font-bold text-xs text-slate-100 tracking-wider">📜 冒険者ギルド 依頼ボード</span>
+                    <span className="text-[10px] text-slate-400">適正: <strong className="text-amber-300 font-scifi font-bold">Rank {overall.rank}</strong></span>
+                  </div>
 
-            {/* タスク選択 */}
-            <div className="grid grid-cols-3 gap-1.5 max-h-44 overflow-y-auto pr-0.5">
-              {PRESETS.map(p => {
-                const isSelected = selectedPreset.id === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    onClick={() => { setSelectedPreset(p); setInputValue(p.defaultVal); }}
-                    className={`p-2 rounded-xl border transition text-left flex flex-col justify-between ${
-                      isSelected 
-                        ? (isMale ? 'bg-cyan-950/60 border-cyan-400 text-white' : 'bg-pink-950/60 border-pink-400 text-white')
-                        : 'bg-slate-900/50 border-slate-800 text-slate-400'
-                    }`}
-                  >
-                    <span className="text-[11px] font-bold truncate">{p.name}</span>
-                    <div className="mt-1 flex justify-between items-center text-[9px]">
-                      <span className="text-slate-400">{p.statName}</span>
-                      <span className={`font-mono font-bold ${themeColor}`}>+{p.gain}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                  {/* ランク切り替えタブ */}
+                  <div className="flex space-x-1 overflow-x-auto pb-1">
+                    {['F', 'E', 'D', 'C', 'B', 'A', 'S'].map(r => (
+                      <button
+                        key={r}
+                        onClick={() => setSelectedRankTab(r)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-scifi font-bold flex-1 text-center transition ${
+                          selectedRankTab === r ? 'bg-amber-500 text-slate-950 shadow-lg' : 'bg-slate-800/60 text-slate-400 border border-slate-700/60'
+                        }`}
+                      >
+                        {r}級
+                      </button>
+                    ))}
+                  </div>
 
-            {/* 記録入力 */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-300 font-bold">{selectedPreset.name} ({selectedPreset.unit})</span>
-                <span className="text-cyan-400 font-mono text-[11px]">
-                  見込: <strong className="text-white text-sm">+{Math.max(1, Math.floor(inputValue / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1))}</strong> ({selectedPreset.statName})
-                </span>
+                  {/* 依頼リスト */}
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5">
+                    {filteredQuests.map(q => {
+                      const isClear = dailyCleared.includes(q.id);
+                      return (
+                        <div key={q.id} className="p-3 rounded-xl border border-slate-800 bg-slate-950/70 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-bold text-xs text-white flex items-center space-x-1.5">
+                                <span>{q.name}</span>
+                                {isClear && (
+                                  <span className="text-[9px] font-scifi font-black text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-400 tracking-wider">
+                                    CLEAR
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-slate-400 mt-0.5">{q.desc}</div>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-1.5 border-t border-slate-800/80 text-[11px]">
+                            <div className="text-slate-400">
+                              要求: <span className="text-cyan-300 font-bold">{q.reqTypes.join(' ＋ ')}</span>
+                              <span className="text-amber-300 font-bold ml-2">🪙 +{q.rewardGold}G</span>
+                            </div>
+                            <button
+                              onClick={() => handleAttemptQuest(q)}
+                              className={`px-3 py-1 rounded-lg font-bold text-xs active:scale-95 transition ${
+                                isClear ? 'bg-slate-800 text-slate-400 border border-slate-700' : themeBtn
+                              }`}
+                            >
+                              {isClear ? '達成済' : '挑戦する'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <div className="flex space-x-1.5">
-                {[10, 20, 30, 50].map(num => (
-                  <button key={num} onClick={() => setInputValue(num)} className="flex-1 py-1 rounded bg-slate-800/60 border border-slate-700 text-xs text-slate-300">
-                    {num}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number" min="1" max="999" value={inputValue}
-                  onChange={(e) => setInputValue(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-24 bg-slate-950 border border-slate-700 rounded-lg py-2 text-center text-lg font-scifi font-bold text-white"
-                />
-                <button
-                  onClick={handleRecord}
-                  className={`flex-1 font-black py-2.5 rounded-lg text-xs font-scifi active:scale-95 transition ${
-                    isMale ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950' : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white'
-                  }`}
-                >
-                  TRAIN COMPLETED
-                </button>
-              </div>
-            </div>
+            )}
+
           </main>
 
-          {/* 下部固定ボタン */}
-          <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-3 bg-gradient-to-t from-black to-transparent z-20">
+          {/* 下部ナビゲーション */}
+          <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-2.5 bg-slate-950/95 border-t border-slate-800 backdrop-blur z-30 flex items-center space-x-2">
             <button
-              onClick={() => setIsStatusOpen(true)}
-              className={`w-full py-3.5 rounded-2xl font-scifi font-black text-sm tracking-widest text-slate-950 shadow-lg ${
-                isMale ? 'bg-cyan-400' : 'bg-pink-400 text-white'
+              onClick={() => setActiveTab('train')}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition ${
+                activeTab === 'train' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
               }`}
             >
-              ✨ STATUS OPEN
+              <i data-lucide="dumbbell" className="w-4 h-4"></i>
+              <span>鍛錬メニュー</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('guild')}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition ${
+                activeTab === 'guild' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
+              }`}
+            >
+              <i data-lucide="scroll" className="w-4 h-4"></i>
+              <span>冒険者ギルド</span>
+            </button>
+
+            <button
+              onClick={() => setIsStatusOpen(true)}
+              className="px-4 py-2.5 rounded-xl font-scifi font-black text-xs tracking-wider bg-slate-900 border border-slate-700 text-amber-300 hover:text-white"
+            >
+              STATUS
             </button>
           </div>
 
-          {/* 生活費モーダル */}
+          {/* 本日達成済み警告モーダル */}
+          {alreadyClearedNotice && (
+            <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-6">
+              <div className="bg-slate-900 border border-amber-500/50 rounded-2xl p-5 max-w-xs w-full text-center space-y-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center mx-auto">
+                  <i data-lucide="check" className="w-6 h-6"></i>
+                </div>
+                <h3 className="font-bold text-sm text-white">ミッション達成済み</h3>
+                <p className="text-xs text-slate-300">
+                  こちらのミッションは本日達成済みです。<br/>
+                  明日になると再び受注できるようになります！
+                </p>
+                <button 
+                  onClick={() => setAlreadyClearedNotice(false)} 
+                  className="w-full py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 生活費引き落としモーダル */}
           {innBillNotice && (
             <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6">
               <div className="bg-slate-900 border border-amber-500/50 rounded-2xl p-5 max-w-xs w-full text-center space-y-3">
@@ -692,7 +849,7 @@
           {questResultModal && (
             <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-5">
               <div className={`bg-slate-900 border-2 rounded-2xl p-5 max-w-sm w-full space-y-3 ${
-                questResultModal.success ? 'border-amber-400' : 'border-red-500/60'
+                questResultModal.success ? 'border-amber-400 shadow-neon-gold' : 'border-red-500/60'
               }`}>
                 <div className="text-center">
                   <div className="text-2xl">{questResultModal.success ? '⚔️' : '❌'}</div>
@@ -737,18 +894,33 @@
           {isStatusOpen && (
             <div className="fixed inset-0 z-50 bg-black/95 flex flex-col p-5 overflow-y-auto">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                <span className={`font-scifi text-xs ${themeColor}`}>STATUS INTERFACE</span>
+                <span className={`font-scifi text-xs ${themeText}`}>STATUS INTERFACE</span>
                 <button onClick={() => setIsStatusOpen(false)} className="text-slate-400 text-lg font-bold">✕</button>
               </div>
 
-              <div className="mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center space-y-1.5">
-                <div className="flex justify-center"><CharacterVisual gender={player.gender} size={130} /></div>
+              <div className="mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center space-y-2">
+                <div className="flex justify-center">
+                  <div 
+                    onClick={() => fileInputRef.current.click()}
+                    className={`w-32 h-32 rounded-2xl border-2 overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer ${themeBorder} ${themeShadow}`}
+                  >
+                    {player.customAvatar ? (
+                      <img src={player.customAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center p-2">
+                        <i data-lucide="image-plus" className="w-8 h-8 text-slate-500 mx-auto"></i>
+                        <span className="text-[10px] text-slate-400 mt-1 block">画像を設定</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="text-xs font-bold text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded-full inline-block border border-amber-500/40">
                   【{currentJob.name}】 ({currentJob.tier})
                 </div>
-                <div className="text-[10px] text-slate-400">{currentJob.desc}</div>
+                <div className="text-[11px] text-slate-400">{currentJob.desc}</div>
                 <div className="flex justify-center space-x-3 text-xs font-scifi font-bold pt-1">
-                  <span className={themeColor}>Rank {overall.rank}</span>
+                  <span className={themeText}>Rank {overall.rank}</span>
                   <span className={player.gold < 0 ? 'text-red-400' : 'text-amber-300'}>🪙 {player.gold} G</span>
                 </div>
               </div>
