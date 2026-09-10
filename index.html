@@ -24,26 +24,16 @@
             }
           },
           boxShadow: {
-            'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.45), 0 0 30px rgba(0, 240, 255, 0.2)',
-            'neon-pink': '0 0 15px rgba(255, 77, 148, 0.45), 0 0 30px rgba(255, 77, 148, 0.2)',
+            'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.45)',
+            'neon-pink': '0 0 15px rgba(255, 77, 148, 0.45)',
             'neon-gold': '0 0 20px rgba(255, 209, 102, 0.5)',
-          },
-          animation: {
-            'float': 'float 3s ease-in-out infinite',
-            'spin-slow': 'spin 12s linear infinite',
-          },
-          keyframes: {
-            float: {
-              '0%, 100%': { transform: 'translateY(0px)' },
-              '50%': { transform: 'translateY(-6px)' },
-            }
           }
         }
       }
     }
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Orbitron:wght@700;900&family=Rajdhani:wght@700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Orbitron:wght@700;900&display=swap');
     body {
       font-family: 'M PLUS Rounded 1c', sans-serif;
       background-color: #070913;
@@ -55,17 +45,739 @@
       font-family: 'Orbitron', sans-serif;
       letter-spacing: 0.08em;
     }
-    .cyber-grid {
-      background-size: 28px 28px;
-      background-image: 
-        linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-    }
-    .scanline {
-      background: linear-gradient(rgba(18, 16, 25, 0) 50%, rgba(5, 5, 12, 0.3) 50%);
-      background-size: 100% 4px;
-    }
     ::-webkit-scrollbar { display: none; }
   </style>
 </head>
-<!-- この後に続くメインコードは上記の index.html ファイル内に完全収録されています -->
+<body class="min-h-screen overflow-x-hidden bg-[#070913]">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // 軽量SVGアバター
+    function CharacterVisual({ gender, size = 160 }) {
+      const isMale = gender === 'male';
+      return (
+        <div className="flex items-center justify-center" style={{ width: size, height: size }}>
+          {isMale ? (
+            <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-lg">
+              <circle cx="60" cy="60" r="54" fill="#0f172a" stroke="#00f0ff" strokeWidth="3" />
+              <path d="M40 38 Q60 20 80 38 Q85 55 60 55 Q35 55 40 38" fill="#38bdf8" />
+              <circle cx="60" cy="56" r="22" fill="#fed7aa" />
+              <circle cx="52" cy="54" r="3" fill="#0f172a" />
+              <circle cx="68" cy="54" r="3" fill="#0f172a" />
+              <path d="M56 64 Q60 67 64 64" stroke="#0f172a" strokeWidth="2" fill="none" />
+              <path d="M35 100 Q60 76 85 100" fill="#0284c7" />
+              <path d="M50 78 L70 78 L65 96 L55 96 Z" fill="#e2e8f0" stroke="#94a3b8" />
+              <polygon points="60,24 64,32 72,32 66,37 68,45 60,40 52,45 54,37 48,32 56,32" fill="#ffd166" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-lg">
+              <circle cx="60" cy="60" r="54" fill="#0f172a" stroke="#ff4d94" strokeWidth="3" />
+              <path d="M32 40 Q60 16 88 40 Q94 75 88 85 L80 60 Q60 52 40 60 L32 85 Z" fill="#fb7185" />
+              <circle cx="60" cy="56" r="22" fill="#fed7aa" />
+              <circle cx="52" cy="54" r="3" fill="#0f172a" />
+              <circle cx="68" cy="54" r="3" fill="#0f172a" />
+              <path d="M56 64 Q60 68 64 64" stroke="#e11d48" strokeWidth="2" fill="none" />
+              <path d="M35 100 Q60 76 85 100" fill="#e11d48" />
+              <path d="M48 78 L72 78 L68 96 L52 96 Z" fill="#ffd166" />
+              <circle cx="38" cy="42" r="5" fill="#f43f5e" />
+              <circle cx="82" cy="42" r="5" fill="#f43f5e" />
+            </svg>
+          )}
+        </div>
+      );
+    }
+
+    // 4ステータス & タスクプリセット
+    const PRESETS = [
+      { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'dumbbell' },
+      { id: 'situps', name: '腹筋 / クランチ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'shield' },
+      { id: 'squats', name: 'スクワット', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'zap' },
+      { id: 'running', name: 'ランニング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, icon: 'flame' },
+      { id: 'walking', name: 'ウォーキング / 早歩き', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, icon: 'activity' },
+      { id: 'stretch', name: 'ストレッチ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, icon: 'heart' },
+      { id: 'yoga', name: 'ヨガ / 体幹トレ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, icon: 'sparkles' },
+      { id: 'reading', name: '読書', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, icon: 'book-open' },
+      { id: 'study', name: '勉強 / 資格学習', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, icon: 'brain' },
+    ];
+
+    const RANK_THRESHOLDS = [
+      { rank: 'F', min: 0, max: 9 },
+      { rank: 'E', min: 10, max: 24 },
+      { rank: 'D', min: 25, max: 49 },
+      { rank: 'C', min: 50, max: 79 },
+      { rank: 'B', min: 80, max: 119 },
+      { rank: 'A', min: 120, max: 169 },
+      { rank: 'S', min: 170, max: 99999 },
+    ];
+
+    function getStatRank(val) {
+      for (let i = RANK_THRESHOLDS.length - 1; i >= 0; i--) {
+        if (val >= RANK_THRESHOLDS[i].min) return RANK_THRESHOLDS[i].rank;
+      }
+      return 'F';
+    }
+
+    function calculateOverallRank(stats) {
+      const vals = [stats.strength || 0, stats.agility || 0, stats.flexibility || 0, stats.intelligence || 0].sort((a, b) => b - a);
+      const top2Avg = (vals[0] + vals[1]) / 2;
+      return { rank: getStatRank(top2Avg), avgVal: Math.round(top2Avg) };
+    }
+
+    function determineJob(stats) {
+      const statList = [
+        { key: 'strength', name: '筋力', val: stats.strength || 0 },
+        { key: 'agility', name: '俊敏', val: stats.agility || 0 },
+        { key: 'flexibility', name: '柔軟', val: stats.flexibility || 0 },
+        { key: 'intelligence', name: '知力', val: stats.intelligence || 0 },
+      ].sort((x, y) => y.val - x.val);
+
+      const top1 = statList[0];
+      const top2 = statList[1];
+      const avgTop2 = (top1.val + top2.val) / 2;
+
+      if (avgTop2 < 25) {
+        return { name: '見習い冒険者', tier: '見習い', desc: '街の雑用や基礎体力を鍛える駆け出し冒険者' };
+      }
+
+      const isHighTier = avgTop2 >= 80;
+      const isDual = (top1.val - top2.val) <= 15;
+
+      if (isDual) {
+        const combo = [top1.key, top2.key].sort().join('+');
+        switch(combo) {
+          case 'agility+strength':
+            return isHighTier ? { name: '拳聖', tier: '上級職', desc: '気功と連撃を極めた体術の頂点' } : { name: '武闘家', tier: '基本職', desc: '拳と蹴りの速射で圧倒する格闘家' };
+          case 'flexibility+strength':
+            return isHighTier ? { name: '聖騎士', tier: '上級職', desc: '衝撃を受け流す体幹と神聖な護りを宿す鉄壁の盾' } : { name: '重装騎士', tier: '基本職', desc: '頑強な鎧と筋力で前線を支える騎士' };
+          case 'agility+flexibility':
+            return isHighTier ? { name: '忍者', tier: '上級職', desc: '神出鬼没の身のこなしで死角を制する達人' } : { name: '忍び', tier: '基本職', desc: '身軽さと柔軟さで敵を惑わす下忍' };
+          case 'intelligence+strength':
+            return isHighTier ? { name: '魔剣士', tier: '上級職', desc: '剣技に高位魔法を宿して戦う文武両道の花形' } : { name: '魔法戦士', tier: '基本職', desc: '剣と基礎魔法を器用に操る万能戦士' };
+          case 'agility+intelligence':
+            return isHighTier ? { name: '狙撃手', tier: '上級職', desc: '風と弾道を完璧に読み急所を射抜くスナイパー' } : { name: '弓使い', tier: '基本職', desc: '状況判断と素早い矢の装填で援護する射手' };
+          case 'flexibility+intelligence':
+            return isHighTier ? { name: 'ネクロマンサー', tier: '上級職', desc: '深淵の知恵と異界の気配を受け流す死霊術士' } : { name: '呪術師', tier: '基本職', desc: '霊的な気配を読みデバフを操る術士' };
+          default:
+            break;
+        }
+      }
+
+      switch(top1.key) {
+        case 'strength':
+          return isHighTier ? { name: '狂戦士', tier: '上級職', desc: '理性を超越した腕力で全てを叩き割る破壊神' } : { name: '戦士', tier: '基本職', desc: '剛腕で武器を振るう前衛の基本職' };
+        case 'agility':
+          return isHighTier ? { name: 'アサシン', tier: '上級職', desc: '音もなく間合いを詰め急所を一撃で断つ暗殺者' } : { name: '軽戦士', tier: '基本職', desc: '素早さと手数の多さで優位に立つ身軽な戦士' };
+        case 'flexibility':
+          return isHighTier ? { name: '幻影士', tier: '上級職', desc: '関節の柔らかさで残像すら惑わせる回避の達人' } : { name: '道化師', tier: '基本職', desc: 'しなやかな動きで敵の攻撃をことごとく躱すトリックスター' };
+        case 'intelligence':
+          return isHighTier ? { name: '大魔導士', tier: '上級職', desc: '世界の理を解き広域属性魔法を放つ大賢者' } : { name: '魔導士', tier: '基本職', desc: '知識と分析で敵の弱点を突く呪術士' };
+        default:
+          return { name: '冒険者', tier: '基本職', desc: '未知なる世界へ挑む者' };
+      }
+    }
+
+    // 冒険者ギルド 依頼リスト
+    const GUILD_QUESTS = [
+      {
+        id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '街の近くの草原で傷薬に使う薬草を採取する。',
+        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 },
+        failLogs: { intelligence: '毒草と見分けがつかなかった。【読書/勉強】で知力を鍛えよう！', flexibility: '斜面で足腰が硬く滑落してしまった。【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
+        rewardGold: 8, rewardTitle: '草原の採取者', icon: 'sprout'
+      },
+      {
+        id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。',
+        reqTypes: ['筋力'], reqStats: { strength: 8 },
+        failLogs: { strength: '腕力が足りずバケツを引き上げきれなかった。【腕立て/腹筋/スクワット】で筋力を鍛えよう！' },
+        rewardGold: 10, rewardTitle: '奉仕の掃除人', icon: 'droplet'
+      },
+      {
+        id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。',
+        reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 },
+        failLogs: { agility: '走るスピードが遅く見失ってしまった。【ランニング/ウォーキング】で俊敏を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
+        rewardGold: 10, rewardTitle: '迷い猫の救い手', icon: 'smile'
+      },
+      {
+        id: 'e1', rank: 'E', name: 'ジャイアントラット駆除', desc: '食料庫を荒らす巨大ネズミの群れを仕留める。',
+        reqTypes: ['俊敏'], reqStats: { agility: 15 },
+        failLogs: { agility: '踏み込みが遅い！俊敏な動きに翻弄された。【ランニング/ウォーキング】で俊敏を鍛えよう！' },
+        rewardGold: 20, rewardTitle: '害獣ハンター', icon: 'bug'
+      },
+      {
+        id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。',
+        reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 },
+        failLogs: { strength: 'パワー負け！突進に弾き飛ばされた。【腕立て/腹筋/スクワット】で筋力を鍛えよう！', flexibility: '衝撃を体幹で逃がしきれなかった。【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
+        rewardGold: 25, rewardTitle: '畑の守護者', icon: 'shield-alert'
+      },
+      {
+        id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。',
+        reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 },
+        failLogs: { strength: '打ち込みが浅く倒しきれなかった。【腕立て/スクワット】で筋力を鍛えよう！', agility: '機敏なステップについていけなかった。【ランニング】で俊敏を鍛えよう！' },
+        rewardGold: 60, rewardTitle: '斥候スレイヤー', icon: 'swords'
+      },
+      {
+        id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。',
+        reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 },
+        failLogs: { strength: '重い棍棒に力負けし弾かれた！【腕立て/スクワット】で筋力を鍛えよう！', flexibility: '強烈な打撃を受け止めきれなかった！【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
+        rewardGold: 150, rewardTitle: '豪傑の武芸者', icon: 'hammer'
+      },
+      {
+        id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '単体で砦を半壊させる巨大牛頭魔獣との決闘。',
+        reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 },
+        failLogs: { strength: '破壊力が桁違いだ！真っ向勝負で押し切られた。【腕立て】で筋力を極限まで高めよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【ストレッチ】で柔軟を極めよう！' },
+        rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー', icon: 'skull'
+      },
+      {
+        id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王。',
+        reqTypes: ['知力'], reqStats: { intelligence: 95 },
+        failLogs: { intelligence: '術式の展開速度で圧倒された！【読書/勉強】で知力を極限まで高めよう！' },
+        rewardGold: 380, rewardTitle: '深淵の解読者', icon: 'book'
+      },
+      {
+        id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '超高速で滑空するワイバーンを射抜く。',
+        reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 },
+        failLogs: { agility: '照準が追いつかない！【ランニング】で俊敏を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【読書/勉強】で知力を研ぎ澄まそう！' },
+        rewardGold: 700, rewardTitle: '竜殺しの鷹目', icon: 'crosshair'
+      },
+      {
+        id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。',
+        reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 },
+        failLogs: {
+          strength: '巨体を崩すパワーが足りない！【腕立て】で筋力を鍛えよう！',
+          agility: 'ブレスを回避するスピードが足りない！【ランニング】で俊敏を鍛えよう！',
+          flexibility: '衝撃波をいなしきれない！【ストレッチ】で柔軟を鍛えよう！',
+          intelligence: '絶対結界を見破れない！【勉強】で知力を極めよう！'
+        },
+        rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者', icon: 'crown'
+      }
+    ];
+
+    function App() {
+      const [player, setPlayer] = useState(() => {
+        const saved = localStorage.getItem('rpg_fitness_player_guild_v19');
+        return saved ? JSON.parse(saved) : {
+          name: 'HERO',
+          gender: 'male',
+          gold: 30,
+          stats: { strength: 0, agility: 0, flexibility: 0, intelligence: 0 },
+          lastTrainedDates: { strength: null, agility: null, flexibility: null, intelligence: null },
+          activeTitle: '見習い冒険者',
+          unlockedTitles: ['見習い冒険者'],
+          completedQuests: [],
+          streakCount: 1,
+          lastActiveDate: null,
+          isCamping: false,
+          logs: []
+        };
+      });
+
+      const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
+      const [inputValue, setInputValue] = useState(PRESETS[0].defaultVal);
+      const [isStatusOpen, setIsStatusOpen] = useState(false);
+      const [selectedRankTab, setSelectedRankTab] = useState('F');
+      const [questResultModal, setQuestResultModal] = useState(null);
+      const [innBillNotice, setInnBillNotice] = useState(null);
+
+      const [timerSeconds, setTimerSeconds] = useState(0);
+      const [isTimerRunning, setIsTimerRunning] = useState(false);
+      const timerIntervalRef = useRef(null);
+
+      // 初回起動時の生活費引き落とし & 減衰
+      useEffect(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayTime = today.getTime();
+
+        if (player.lastActiveDate) {
+          const lastDate = new Date(player.lastActiveDate);
+          lastDate.setHours(0, 0, 0, 0);
+          const diffDays = Math.floor((todayTime - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (diffDays >= 1) {
+            const cost = diffDays * 3;
+            const newGold = player.gold - cost;
+            const camping = newGold < 0;
+
+            const newStats = { ...player.stats };
+            ['strength', 'agility', 'flexibility', 'intelligence'].forEach(k => {
+              if (player.lastTrainedDates[k]) {
+                const td = new Date(player.lastTrainedDates[k]);
+                td.setHours(0, 0, 0, 0);
+                const idle = Math.floor((todayTime - td.getTime()) / (1000 * 60 * 60 * 24));
+                if (idle >= 3) {
+                  newStats[k] = Math.max(0, newStats[k] - (idle - 2));
+                }
+              }
+            });
+
+            setPlayer(prev => ({
+              ...prev,
+              gold: newGold,
+              stats: newStats,
+              lastActiveDate: todayTime,
+              streakCount: diffDays === 1 ? prev.streakCount + 1 : 1,
+              isCamping: camping
+            }));
+
+            setInnBillNotice({ cost, days: diffDays, remainingGold: newGold, isCamping: camping });
+          }
+        } else {
+          setPlayer(prev => ({ ...prev, lastActiveDate: todayTime }));
+        }
+      }, []);
+
+      useEffect(() => {
+        localStorage.setItem('rpg_fitness_player_guild_v19', JSON.stringify(player));
+      }, [player]);
+
+      useEffect(() => {
+        if (window.lucide) window.lucide.createIcons();
+      }, [selectedPreset, isStatusOpen, selectedRankTab, questResultModal, innBillNotice, player]);
+
+      // タイマー管理
+      useEffect(() => {
+        if (isTimerRunning) {
+          timerIntervalRef.current = setInterval(() => setTimerSeconds(p => p + 1), 1000);
+        } else if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+        }
+        return () => { if (timerIntervalRef.current) clearInterval(timerIntervalRef.current); };
+      }, [isTimerRunning]);
+
+      const formatTimer = (sec) => {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      };
+
+      const overall = calculateOverallRank(player.stats);
+      const currentJob = determineJob(player.stats);
+
+      // タスク記録
+      const handleRecord = () => {
+        const amount = Number(inputValue);
+        if (!amount || amount <= 0) return;
+
+        let gained = Math.floor(amount / selectedPreset.stepVal) * selectedPreset.gain;
+        if (gained < 1) gained = selectedPreset.gain;
+        if (player.isCamping) gained = Math.max(1, Math.floor(gained * 0.5));
+
+        const cat = selectedPreset.category;
+        const nextVal = (player.stats[cat] || 0) + gained;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        setPlayer(prev => ({
+          ...prev,
+          stats: { ...prev.stats, [cat]: nextVal },
+          lastTrainedDates: { ...prev.lastTrainedDates, [cat]: today.getTime() }
+        }));
+
+        if (window.confetti) window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
+      };
+
+      // 依頼挑戦
+      const handleAttemptQuest = (quest) => {
+        let isSuccess = true;
+        const details = [];
+        const statNameMap = { strength: '筋力', agility: '俊敏', flexibility: '柔軟', intelligence: '知力' };
+
+        for (let k in quest.reqStats) {
+          const req = quest.reqStats[k];
+          const cur = player.stats[k] || 0;
+          const passed = cur >= req;
+          if (!passed) isSuccess = false;
+          details.push({
+            name: statNameMap[k],
+            current: cur,
+            required: req,
+            diff: req - cur,
+            passed: passed,
+            failAdvice: quest.failLogs[k]
+          });
+        }
+
+        if (isSuccess) {
+          const newGold = player.gold + quest.rewardGold;
+          const wasCamping = player.isCamping;
+          const nowCamping = newGold < 0;
+
+          const updatedTitles = [...player.unlockedTitles];
+          if (quest.rewardTitle && !updatedTitles.includes(quest.rewardTitle)) {
+            updatedTitles.push(quest.rewardTitle);
+          }
+
+          const completed = [...player.completedQuests];
+          if (!completed.includes(quest.id)) completed.push(quest.id);
+
+          setPlayer(prev => ({
+            ...prev,
+            gold: newGold,
+            unlockedTitles: updatedTitles,
+            completedQuests: completed,
+            isCamping: nowCamping
+          }));
+
+          setQuestResultModal({
+            quest, success: true, details, wasCampingRecovered: wasCamping && !nowCamping
+          });
+          if (window.confetti) window.confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+        } else {
+          setQuestResultModal({ quest, success: false, details });
+        }
+      };
+
+      const isMale = player.gender === 'male';
+      const themeColor = isMale ? 'text-cyan-400' : 'text-pink-400';
+      const themeBorder = isMale ? 'border-cyan-500/40' : 'border-pink-500/40';
+
+      const filteredQuests = GUILD_QUESTS.filter(q => q.rank === selectedRankTab);
+
+      return (
+        <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-24 bg-[#090c16] border-x border-slate-800 shadow-2xl">
+          
+          {/* ヘッダー */}
+          <header className="p-3 border-b border-slate-800 bg-[#0e1222]/90 backdrop-blur sticky top-0 z-20 flex justify-between items-center">
+            <div className="flex items-center space-x-2.5">
+              <div onClick={() => setIsStatusOpen(true)} className={`w-11 h-11 rounded-2xl border flex items-center justify-center cursor-pointer p-0.5 ${themeBorder}`}>
+                <CharacterVisual gender={player.gender} size={38} />
+              </div>
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className={`font-scifi text-sm font-black ${themeColor}`}>Rank {overall.rank}</span>
+                  <span className={`text-xs font-bold font-scifi ${player.gold < 0 ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
+                    🪙 {player.gold} G
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-300 font-bold truncate max-w-[130px]">
+                  <span className="text-amber-400">【{currentJob.name}】</span>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setPlayer(p => ({ ...p, gender: p.gender === 'male' ? 'female' : 'male' }))}
+              className="px-2.5 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-[11px] font-bold hover:text-white"
+            >
+              {player.gender === 'male' ? '👦 男' : '👧 女'} 切替
+            </button>
+          </header>
+
+          {/* 野宿バナー */}
+          {player.isCamping && (
+            <div className="mx-3 mt-2 p-2 rounded-xl bg-red-950/90 border border-red-500/80 text-red-200 text-xs flex items-center justify-between">
+              <div>
+                <div className="font-bold text-[11px] text-red-300">⚠️【野宿生活】能力上昇値が半減中！</div>
+                <div className="text-[9px] text-slate-300">宿代が尽きました。依頼をクリアして宿代を稼ぎましょう！</div>
+              </div>
+            </div>
+          )}
+
+          {/* メインエリア */}
+          <main className="p-3.5 flex-1 space-y-3">
+            
+            {/* ステータスカード */}
+            <div className={`rounded-2xl border bg-gradient-to-b from-[#141829] to-[#0d101e] p-3 shadow-lg ${themeBorder} space-y-2`}>
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-amber-300 font-bold bg-black/40 px-2 py-0.5 rounded-full border border-amber-400/30">
+                  🔥 鍛錬継続 {player.streakCount} 日目
+                </span>
+                <span className={`font-scifi font-black text-sm ${themeColor}`}>冒険者 Rank {overall.rank}</span>
+              </div>
+
+              <div className="grid grid-cols-4 gap-1.5 pt-1 text-center font-mono">
+                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-red-900/40">
+                  <div className="text-[9px] text-red-400 font-bold">筋力</div>
+                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.strength}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.strength)}</div>
+                </div>
+                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-cyan-900/40">
+                  <div className="text-[9px] text-cyan-400 font-bold">俊敏</div>
+                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.agility}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.agility)}</div>
+                </div>
+                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-emerald-900/40">
+                  <div className="text-[9px] text-emerald-400 font-bold">柔軟</div>
+                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.flexibility}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.flexibility)}</div>
+                </div>
+                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-purple-900/40">
+                  <div className="text-[9px] text-purple-400 font-bold">知力</div>
+                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.intelligence}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.intelligence)}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 冒険者ギルド 依頼ボード */}
+            <div className="bg-slate-900/90 border border-amber-500/40 rounded-2xl p-3 space-y-2.5 shadow-xl">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                <span className="font-bold text-xs text-slate-100 tracking-wider">📜 冒険者ギルド 依頼ボード</span>
+                <span className="text-[10px] text-slate-400">適正: <strong className="text-amber-300 font-scifi font-bold">Rank {overall.rank}</strong></span>
+              </div>
+
+              {/* ランク切り替えタブ */}
+              <div className="flex space-x-1 overflow-x-auto pb-1">
+                {['F', 'E', 'D', 'C', 'B', 'A', 'S'].map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setSelectedRankTab(r)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-scifi font-bold flex-1 text-center transition ${
+                      selectedRankTab === r ? 'bg-amber-500 text-slate-950 shadow-lg' : 'bg-slate-800/60 text-slate-400 border border-slate-700/60'
+                    }`}
+                  >
+                    {r}級
+                  </button>
+                ))}
+              </div>
+
+              {/* 依頼一覧 */}
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-0.5">
+                {filteredQuests.map(q => {
+                  const isDone = player.completedQuests.includes(q.id);
+                  return (
+                    <div key={q.id} className="p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 space-y-1.5">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-bold text-xs text-white flex items-center space-x-1">
+                            <span>{q.name}</span>
+                            {isDone && <span className="text-[9px] text-amber-400 bg-amber-950/80 px-1 rounded border border-amber-500/40">済</span>}
+                          </div>
+                          <div className="text-[10px] text-slate-400">{q.desc}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-1 border-t border-slate-800/80 text-[10px]">
+                        <div className="text-slate-400">
+                          要求: <span className="text-cyan-300 font-bold">{q.reqTypes.join(' ＋ ')}</span>
+                          <span className="text-amber-300 font-bold ml-2">🪙 +{q.rewardGold}G</span>
+                        </div>
+                        <button
+                          onClick={() => handleAttemptQuest(q)}
+                          className={`px-3 py-1 rounded-lg font-bold text-xs active:scale-95 transition ${
+                            isMale ? 'bg-cyan-500 text-slate-950' : 'bg-pink-500 text-white'
+                          }`}
+                        >
+                          挑戦する
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* クエストタイマー */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between shadow-lg">
+              <div>
+                <div className="text-[10px] text-slate-400 font-bold">QUEST TIMER</div>
+                <div className="font-scifi font-black text-lg text-white tracking-widest">{formatTimer(timerSeconds)}</div>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <button
+                  onClick={() => setIsTimerRunning(!isTimerRunning)}
+                  className={`px-3 py-1.5 rounded-lg font-bold text-xs transition ${
+                    isTimerRunning ? 'bg-amber-500 text-slate-950' : (isMale ? 'bg-cyan-500 text-slate-950' : 'bg-pink-500 text-white')
+                  }`}
+                >
+                  {isTimerRunning ? "一時停止" : "スタート"}
+                </button>
+                {timerSeconds > 0 && (
+                  <button
+                    onClick={() => { setIsTimerRunning(false); setInputValue(Math.max(1, Math.round(timerSeconds / 60))); }}
+                    className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold"
+                  >
+                    反映
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* タスク選択 */}
+            <div className="grid grid-cols-3 gap-1.5 max-h-44 overflow-y-auto pr-0.5">
+              {PRESETS.map(p => {
+                const isSelected = selectedPreset.id === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => { setSelectedPreset(p); setInputValue(p.defaultVal); }}
+                    className={`p-2 rounded-xl border transition text-left flex flex-col justify-between ${
+                      isSelected 
+                        ? (isMale ? 'bg-cyan-950/60 border-cyan-400 text-white' : 'bg-pink-950/60 border-pink-400 text-white')
+                        : 'bg-slate-900/50 border-slate-800 text-slate-400'
+                    }`}
+                  >
+                    <span className="text-[11px] font-bold truncate">{p.name}</span>
+                    <div className="mt-1 flex justify-between items-center text-[9px]">
+                      <span className="text-slate-400">{p.statName}</span>
+                      <span className={`font-mono font-bold ${themeColor}`}>+{p.gain}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 記録入力 */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3 space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-slate-300 font-bold">{selectedPreset.name} ({selectedPreset.unit})</span>
+                <span className="text-cyan-400 font-mono text-[11px]">
+                  見込: <strong className="text-white text-sm">+{Math.max(1, Math.floor(inputValue / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1))}</strong> ({selectedPreset.statName})
+                </span>
+              </div>
+              <div className="flex space-x-1.5">
+                {[10, 20, 30, 50].map(num => (
+                  <button key={num} onClick={() => setInputValue(num)} className="flex-1 py-1 rounded bg-slate-800/60 border border-slate-700 text-xs text-slate-300">
+                    {num}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number" min="1" max="999" value={inputValue}
+                  onChange={(e) => setInputValue(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-24 bg-slate-950 border border-slate-700 rounded-lg py-2 text-center text-lg font-scifi font-bold text-white"
+                />
+                <button
+                  onClick={handleRecord}
+                  className={`flex-1 font-black py-2.5 rounded-lg text-xs font-scifi active:scale-95 transition ${
+                    isMale ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950' : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white'
+                  }`}
+                >
+                  TRAIN COMPLETED
+                </button>
+              </div>
+            </div>
+          </main>
+
+          {/* 下部固定ボタン */}
+          <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-3 bg-gradient-to-t from-black to-transparent z-20">
+            <button
+              onClick={() => setIsStatusOpen(true)}
+              className={`w-full py-3.5 rounded-2xl font-scifi font-black text-sm tracking-widest text-slate-950 shadow-lg ${
+                isMale ? 'bg-cyan-400' : 'bg-pink-400 text-white'
+              }`}
+            >
+              ✨ STATUS OPEN
+            </button>
+          </div>
+
+          {/* 生活費モーダル */}
+          {innBillNotice && (
+            <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6">
+              <div className="bg-slate-900 border border-amber-500/50 rounded-2xl p-5 max-w-xs w-full text-center space-y-3">
+                <h3 className="font-bold text-sm text-white">宿屋と酒場での支払い</h3>
+                <div className="text-xs text-slate-300 space-y-1">
+                  <p>滞在日数: <strong className="text-white font-mono">{innBillNotice.days}</strong> 日分</p>
+                  <p className="text-amber-300 font-bold font-mono">生活費合計: -{innBillNotice.cost} G</p>
+                </div>
+                {innBillNotice.isCamping ? (
+                  <div className="p-2 rounded-xl bg-red-950/60 border border-red-500/40 text-[11px] text-red-300">
+                    ⚠️ 所持金が尽きたため【野宿生活】になりました！能力獲得量が半減します。
+                  </div>
+                ) : (
+                  <div className="text-xs text-emerald-300 font-bold">
+                    食事とベッドで体調を整えました！（残金: {innBillNotice.remainingGold} G）
+                  </div>
+                )}
+                <button onClick={() => setInnBillNotice(null)} className="w-full py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs">
+                  了解
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 判定結果モーダル */}
+          {questResultModal && (
+            <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-5">
+              <div className={`bg-slate-900 border-2 rounded-2xl p-5 max-w-sm w-full space-y-3 ${
+                questResultModal.success ? 'border-amber-400' : 'border-red-500/60'
+              }`}>
+                <div className="text-center">
+                  <div className="text-2xl">{questResultModal.success ? '⚔️' : '❌'}</div>
+                  <h3 className={`font-bold text-base ${questResultModal.success ? 'text-amber-300' : 'text-red-400'}`}>
+                    {questResultModal.success ? 'ミッション達成！' : 'ミッション失敗……！'}
+                  </h3>
+                  <div className="text-xs text-slate-300 font-bold mt-0.5">{questResultModal.quest.name}</div>
+                </div>
+
+                <div className="space-y-1 bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-xs font-mono">
+                  {questResultModal.details.map((d, i) => (
+                    <div key={i} className="flex justify-between items-center py-0.5">
+                      <span className="text-slate-300">{d.name}</span>
+                      <span className={d.passed ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>
+                        {d.current} / {d.required} ({d.passed ? 'クリア' : `あと ${d.diff} 不足`})
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {questResultModal.success ? (
+                  <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-xs text-amber-200">
+                    <div>🪙 報奨獲得: +{questResultModal.quest.rewardGold} G</div>
+                    {questResultModal.quest.rewardTitle && <div>🎖️ 新称号: 『{questResultModal.quest.rewardTitle}』</div>}
+                  </div>
+                ) : (
+                  <div className="p-2.5 rounded-xl bg-red-950/40 border border-red-500/30 text-xs text-red-200 space-y-1">
+                    {questResultModal.details.filter(d => !d.passed).map((d, i) => (
+                      <div key={i} className="text-[11px]">• {d.failAdvice}</div>
+                    ))}
+                  </div>
+                )}
+
+                <button onClick={() => setQuestResultModal(null)} className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-800 text-slate-200">
+                  閉じる
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ステータス全画面モーダル */}
+          {isStatusOpen && (
+            <div className="fixed inset-0 z-50 bg-black/95 flex flex-col p-5 overflow-y-auto">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span className={`font-scifi text-xs ${themeColor}`}>STATUS INTERFACE</span>
+                <button onClick={() => setIsStatusOpen(false)} className="text-slate-400 text-lg font-bold">✕</button>
+              </div>
+
+              <div className="mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center space-y-1.5">
+                <div className="flex justify-center"><CharacterVisual gender={player.gender} size={130} /></div>
+                <div className="text-xs font-bold text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded-full inline-block border border-amber-500/40">
+                  【{currentJob.name}】 ({currentJob.tier})
+                </div>
+                <div className="text-[10px] text-slate-400">{currentJob.desc}</div>
+                <div className="flex justify-center space-x-3 text-xs font-scifi font-bold pt-1">
+                  <span className={themeColor}>Rank {overall.rank}</span>
+                  <span className={player.gold < 0 ? 'text-red-400' : 'text-amber-300'}>🪙 {player.gold} G</span>
+                </div>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {[
+                  { name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400' },
+                  { name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400' },
+                  { name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400' },
+                  { name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400' },
+                ].map(s => (
+                  <div key={s.name} className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 flex justify-between items-center text-xs">
+                    <span className={`font-bold ${s.color}`}>{s.name}</span>
+                    <span className="text-white font-mono font-bold">{s.val} <span className="text-amber-300">[Rank {getStatRank(s.val)}]</span></span>
+                  </div>
+                ))}
+              </div>
+
+              <button onClick={() => setIsStatusOpen(false)} className="mt-5 w-full py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-scifi font-bold">
+                CLOSE
+              </button>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App/>, document.getElementById('root'));
+  </script>
+</body>
+</html>
