@@ -93,6 +93,13 @@
       return 'F';
     }
 
+    function getNextRankThreshold(val) {
+      for (let t of RANK_THRESHOLDS) {
+        if (val <= t.max) return { currentMax: t.max, nextRank: t.rank === 'S' ? 'MAX' : RANK_THRESHOLDS[RANK_THRESHOLDS.indexOf(t) + 1]?.rank, nextMin: t.max + 1 };
+      }
+      return { currentMax: 999, nextRank: 'MAX', nextMin: 999 };
+    }
+
     function calculateOverallRank(stats) {
       const vals = [stats.strength || 0, stats.agility || 0, stats.flexibility || 0, stats.intelligence || 0].sort((a, b) => b - a);
       const top2Avg = (vals[0] + vals[1]) / 2;
@@ -152,7 +159,6 @@
       }
     }
 
-    // 冒険者ギルド 依頼リスト（知力系・高ランク帯を大幅増量）
     const GUILD_QUESTS = [
       // Fランク
       {
@@ -327,7 +333,8 @@
           lastTrainedDates: { strength: null, agility: null, flexibility: null, intelligence: null },
           activeTitle: '見習い冒険者',
           unlockedTitles: ['見習い冒険者'],
-          dailyClearedQuests: [], // 本日クリアした依頼ID（日付変更でリセット）
+          dailyClearedQuests: [],
+          streakCount: 1,
           lastActiveDate: null,
           isCamping: false,
           logs: []
@@ -376,12 +383,15 @@
               }
             });
 
+            const newStreak = diffDays === 1 ? (player.streakCount || 1) + 1 : 1;
+
             setPlayer(prev => ({
               ...prev,
               gold: newGold,
               stats: newStats,
               lastActiveDate: todayTime,
-              dailyClearedQuests: [], // 翌日になったのでクリア状況を完全リセット！
+              dailyClearedQuests: [],
+              streakCount: newStreak,
               isCamping: camping
             }));
 
@@ -457,7 +467,6 @@
         if (window.confetti) window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
       };
 
-      // 依頼挑戦処理（当日クリア済みなら警告表示）
       const handleAttemptQuest = (quest) => {
         const clearedList = player.dailyClearedQuests || [];
         if (clearedList.includes(quest.id)) {
@@ -494,7 +503,6 @@
             updatedTitles.push(quest.rewardTitle);
           }
 
-          // 本日達成リストに追加
           const newDailyCleared = [...clearedList, quest.id];
 
           setPlayer(prev => ({
@@ -522,39 +530,39 @@
       const dailyCleared = player.dailyClearedQuests || [];
 
       return (
-        <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-28 bg-[#090c16] border-x border-slate-800 shadow-2xl">
+        <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-24 bg-[#090c16] border-x border-slate-800 shadow-2xl">
           
           <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
 
-          {/* ヘッダー */}
+          {/* ヘッダー：ステータス詳細を省き、所持金とジョブ名のみを表示 */}
           <header className="p-3 border-b border-slate-800 bg-[#0e1222]/95 backdrop-blur sticky top-0 z-30 flex justify-between items-center">
             <div className="flex items-center space-x-2.5">
               <div 
-                onClick={() => fileInputRef.current.click()} 
-                title="タップして好きな画像に変更"
+                onClick={() => setIsStatusOpen(true)} 
+                title="ステータスを開く"
                 className={`w-11 h-11 rounded-2xl border flex items-center justify-center cursor-pointer overflow-hidden p-0.5 bg-slate-900 ${themeBorder} ${themeShadow} relative group`}
               >
                 {player.customAvatar ? (
                   <img src={player.customAvatar} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
                 ) : (
                   <div className="text-center">
-                    <i data-lucide="image-plus" className="w-5 h-5 text-slate-400 group-hover:text-white"></i>
+                    <i data-lucide="user" className="w-5 h-5 text-slate-400 group-hover:text-white"></i>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[8px] text-white font-bold transition">
-                  変更
-                </div>
               </div>
 
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className={`font-scifi text-sm font-black ${themeText}`}>Rank {overall.rank}</span>
                   <span className={`text-xs font-bold font-scifi ${player.gold < 0 ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
                     🪙 {player.gold} G
                   </span>
+                  <span className="text-[10px] text-slate-400">|</span>
+                  <span className="text-xs text-amber-400 font-bold truncate max-w-[140px]">
+                    【{currentJob.name}】
+                  </span>
                 </div>
-                <div className="text-[10px] text-slate-300 font-bold truncate max-w-[130px]">
-                  <span className="text-amber-400">【{currentJob.name}】</span>
+                <div className="text-[10px] text-slate-400">
+                  {player.isCamping ? '⛺ 野宿生活' : '🏠 宿屋滞在中'}
                 </div>
               </div>
             </div>
@@ -568,55 +576,14 @@
             </button>
           </header>
 
-          {/* 野宿バナー */}
-          {player.isCamping && (
-            <div className="mx-3 mt-2 p-2 rounded-xl bg-red-950/90 border border-red-500/80 text-red-200 text-xs">
-              <div className="font-bold text-[11px] text-red-300">⚠️【野宿生活】能力上昇値が半減中！</div>
-              <div className="text-[9px] text-slate-300">宿代が尽きました。依頼タブで日銭を稼ぎましょう！</div>
-            </div>
-          )}
-
           {/* メイン画面 */}
           <main className="p-3.5 flex-1 space-y-3">
-            
-            {/* ステータス概要 */}
-            <div className={`rounded-2xl border bg-gradient-to-b from-[#141829] to-[#0d101e] p-3 shadow-lg ${themeBorder} space-y-2`}>
-              <div className="flex justify-between items-center">
-                <span className="text-[11px] text-amber-300 font-bold bg-black/40 px-2 py-0.5 rounded-full border border-amber-400/30">
-                  🔥 鍛錬継続中
-                </span>
-                <span className={`font-scifi font-black text-xs ${themeText}`}>格付: Rank {overall.rank}</span>
-              </div>
 
-              <div className="grid grid-cols-4 gap-1.5 pt-1 text-center font-mono">
-                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-red-900/40">
-                  <div className="text-[9px] text-red-400 font-bold">筋力</div>
-                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.strength}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.strength)}</div>
-                </div>
-                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-cyan-900/40">
-                  <div className="text-[9px] text-cyan-400 font-bold">俊敏</div>
-                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.agility}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.agility)}</div>
-                </div>
-                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-emerald-900/40">
-                  <div className="text-[9px] text-emerald-400 font-bold">柔軟</div>
-                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.flexibility}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.flexibility)}</div>
-                </div>
-                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-purple-900/40">
-                  <div className="text-[9px] text-purple-400 font-bold">知力</div>
-                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.intelligence}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.intelligence)}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* ① 鍛錬（トレーニング）タブ：運動メニュー最上部 */}
+            {/* ① 鍛錬（トレーニング）タブ：入力に集中するシンプルな画面 */}
             {activeTab === 'train' && (
               <div className="space-y-3">
                 {/* クエストタイマー */}
-                <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex items-center justify-between shadow-lg">
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex items-center justify-between shadow-lg">
                   <div>
                     <div className="text-[10px] text-slate-400 font-bold">QUEST TIMER</div>
                     <div className="font-scifi font-black text-xl text-white tracking-widest">{formatTimer(timerSeconds)}</div>
@@ -642,11 +609,11 @@
                 </div>
 
                 {/* 記録入力欄 */}
-                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 space-y-2">
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 space-y-2.5 shadow-md">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-200 font-bold text-sm">{selectedPreset.name} ({selectedPreset.unit})</span>
-                    <span className="text-cyan-400 font-mono text-xs">
-                      上昇見込: <strong className="text-white text-base">+{Math.max(1, Math.floor(inputValue / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1))}</strong> ({selectedPreset.statName})
+                    <span className="text-slate-400 font-mono text-xs">
+                      獲得対象: <strong className={themeText}>{selectedPreset.statName}</strong>
                     </span>
                   </div>
                   <div className="flex space-x-1.5">
@@ -664,16 +631,16 @@
                     />
                     <button
                       onClick={handleRecord}
-                      className={`flex-1 font-black py-3 rounded-xl text-xs font-scifi active:scale-95 transition ${themeBtn} ${themeShadow}`}
+                      className={`flex-1 font-black py-3 rounded-xl text-xs font-bold tracking-wider active:scale-95 transition ${themeBtn} ${themeShadow}`}
                     >
-                      TRAIN COMPLETED
+                      鍛錬完了
                     </button>
                   </div>
                 </div>
 
-                {/* 鍛錬メニュー選択（各ステータス3種・計12種） */}
+                {/* 鍛錬メニュー選択 */}
                 <div className="space-y-1.5">
-                  <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択（4属性 × 各3種）</div>
+                  <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択</div>
                   <div className="grid grid-cols-3 gap-2">
                     {PRESETS.map(p => {
                       const isSelected = selectedPreset.id === p.id;
@@ -706,7 +673,7 @@
                 <div className="bg-slate-900/90 border border-amber-500/40 rounded-2xl p-3 space-y-2.5 shadow-xl">
                   <div className="flex justify-between items-center border-b border-slate-800 pb-2">
                     <span className="font-bold text-xs text-slate-100 tracking-wider">📜 冒険者ギルド 依頼ボード</span>
-                    <span className="text-[10px] text-slate-400">適正: <strong className="text-amber-300 font-scifi font-bold">Rank {overall.rank}</strong></span>
+                    <span className="text-[10px] text-slate-400">格付: <strong className="text-amber-300 font-scifi font-bold">Rank {overall.rank}</strong></span>
                   </div>
 
                   {/* ランク切り替えタブ */}
@@ -725,7 +692,7 @@
                   </div>
 
                   {/* 依頼リスト */}
-                  <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5">
+                  <div className="space-y-2 max-h-[420px] overflow-y-auto pr-0.5">
                     {filteredQuests.map(q => {
                       const isClear = dailyCleared.includes(q.id);
                       return (
@@ -835,7 +802,7 @@
                   </div>
                 ) : (
                   <div className="text-xs text-emerald-300 font-bold">
-                    食事とベッドで体調を整えました！（残金: {innBillNotice.remainingGold} G）
+                    温かい食事とベッドで体調を整えました！（残金: {innBillNotice.remainingGold} G）
                   </div>
                 )}
                 <button onClick={() => setInnBillNotice(null)} className="w-full py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs">
@@ -890,56 +857,136 @@
             </div>
           )}
 
-          {/* ステータス全画面モーダル */}
+          {/* ステータス全画面モーダル：生活・鍛錬日数・各ステータス詳細をすべて集約 */}
           {isStatusOpen && (
-            <div className="fixed inset-0 z-50 bg-black/95 flex flex-col p-5 overflow-y-auto">
-              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                <span className={`font-scifi text-xs ${themeText}`}>STATUS INTERFACE</span>
+            <div className="fixed inset-0 z-50 bg-black/95 flex flex-col p-4 overflow-y-auto">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-2.5">
+                <span className={`font-scifi text-xs tracking-wider ${themeText}`}>ADVENTURER STATUS</span>
                 <button onClick={() => setIsStatusOpen(false)} className="text-slate-400 text-lg font-bold">✕</button>
               </div>
 
-              <div className="mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center space-y-2">
+              {/* アバター & ジョブ情報 */}
+              <div className="mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center space-y-2 shadow-lg">
                 <div className="flex justify-center">
                   <div 
                     onClick={() => fileInputRef.current.click()}
-                    className={`w-32 h-32 rounded-2xl border-2 overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer ${themeBorder} ${themeShadow}`}
+                    title="タップして画像を変更"
+                    className={`w-28 h-28 rounded-2xl border-2 overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer ${themeBorder} ${themeShadow} relative group`}
                   >
                     {player.customAvatar ? (
                       <img src={player.customAvatar} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center p-2">
-                        <i data-lucide="image-plus" className="w-8 h-8 text-slate-500 mx-auto"></i>
-                        <span className="text-[10px] text-slate-400 mt-1 block">画像を設定</span>
+                        <i data-lucide="image-plus" className="w-7 h-7 text-slate-500 mx-auto"></i>
+                        <span className="text-[9px] text-slate-400 mt-1 block">画像を設定</span>
                       </div>
                     )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-white font-bold transition">
+                      変更
+                    </div>
                   </div>
                 </div>
 
-                <div className="text-xs font-bold text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded-full inline-block border border-amber-500/40">
-                  【{currentJob.name}】 ({currentJob.tier})
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-amber-400 bg-amber-950/80 px-3 py-0.5 rounded-full inline-block border border-amber-500/40">
+                    【{currentJob.name}】 ({currentJob.tier})
+                  </div>
+                  <div className="text-[10px] text-slate-400 pt-0.5">{currentJob.desc}</div>
                 </div>
-                <div className="text-[11px] text-slate-400">{currentJob.desc}</div>
-                <div className="flex justify-center space-x-3 text-xs font-scifi font-bold pt-1">
-                  <span className={themeText}>Rank {overall.rank}</span>
-                  <span className={player.gold < 0 ? 'text-red-400' : 'text-amber-300'}>🪙 {player.gold} G</span>
+
+                <div className="flex justify-center space-x-3 text-xs font-scifi font-bold pt-1 border-t border-slate-800/80">
+                  <span className={themeText}>総合格付: Rank {overall.rank}</span>
+                  <span className={player.gold < 0 ? 'text-red-400' : 'text-amber-300'}>🪙 所持金: {player.gold} G</span>
                 </div>
               </div>
 
+              {/* 鍛錬継続 & 住居・コンディション状況 */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {/* 継続日数 */}
+                <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                    <i data-lucide="flame" className="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-slate-400 font-bold">鍛錬継続記録</div>
+                    <div className="text-sm font-scifi font-black text-white">{player.streakCount || 1} 日目</div>
+                  </div>
+                </div>
+
+                {/* 現在の住居 */}
+                <div className={`bg-slate-900/90 border rounded-xl p-2.5 flex items-center space-x-2 ${
+                  player.isCamping ? 'border-red-500/60' : 'border-slate-800'
+                }`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                    player.isCamping ? 'bg-red-500/20 text-red-400' : 'bg-cyan-500/20 text-cyan-400'
+                  }`}>
+                    <i data-lucide={player.isCamping ? "tent" : "home"} className="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-slate-400 font-bold">現在の住居</div>
+                    <div className={`text-xs font-bold ${player.isCamping ? 'text-red-300' : 'text-slate-200'}`}>
+                      {player.isCamping ? '野宿生活' : '宿屋滞在中'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 住居詳細・生活費ペナルティ解説 */}
+              <div className={`mt-2 p-2.5 rounded-xl border text-xs leading-relaxed ${
+                player.isCamping 
+                  ? 'bg-red-950/50 border-red-500/50 text-red-200' 
+                  : 'bg-slate-900/60 border-slate-800 text-slate-300'
+              }`}>
+                {player.isCamping ? (
+                  <div>
+                    <div className="font-bold text-red-300 flex items-center space-x-1">
+                      <i data-lucide="alert-triangle" className="w-3.5 h-3.5"></i>
+                      <span>【野宿生活】鍛錬の獲得能力値が50%低下中！</span>
+                    </div>
+                    <div className="text-[10px] text-slate-300 mt-0.5">
+                      宿屋代が尽きました。依頼を達成して宿代を稼ぎ、温かいベッドに戻りましょう！
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-slate-300">🏠 宿屋滞在（快適な睡眠と食事）</span>
+                    <span className="text-amber-300 font-mono font-bold">-3 G / 日</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 4ステータス詳細（筋力・俊敏・柔軟・知力） */}
               <div className="mt-3 space-y-2">
+                <div className="text-[11px] font-bold text-slate-400 px-1">能力値・ランク詳細</div>
                 {[
-                  { name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400' },
-                  { name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400' },
-                  { name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400' },
-                  { name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400' },
-                ].map(s => (
-                  <div key={s.name} className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 flex justify-between items-center text-xs">
-                    <span className={`font-bold ${s.color}`}>{s.name}</span>
-                    <span className="text-white font-mono font-bold">{s.val} <span className="text-amber-300">[Rank {getStatRank(s.val)}]</span></span>
-                  </div>
-                ))}
+                  { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
+                  { key: 'agility', name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400', bar: 'from-cyan-500 to-blue-500' },
+                  { key: 'flexibility', name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400', bar: 'from-emerald-500 to-teal-500' },
+                  { key: 'intelligence', name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400', bar: 'from-purple-500 to-indigo-500' },
+                ].map(s => {
+                  const r = getStatRank(s.val);
+                  const next = getNextRankThreshold(s.val);
+                  const pct = Math.min(100, Math.floor((s.val / next.currentMax) * 100));
+
+                  return (
+                    <div key={s.key} className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 space-y-1">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className={`font-bold ${s.color}`}>{s.name}</span>
+                        <div className="flex items-center space-x-2 font-mono">
+                          <span className="text-white font-bold">{s.val}</span>
+                          <span className="text-amber-300 font-bold font-scifi">[Rank {r}]</span>
+                          <span className="text-[10px] text-slate-500">(次: {next.nextRank})</span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                        <div className={`h-full rounded-full bg-gradient-to-r ${s.bar}`} style={{ width: `${pct}%` }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              <button onClick={() => setIsStatusOpen(false)} className="mt-5 w-full py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-scifi font-bold">
+              <button onClick={() => setIsStatusOpen(false)} className="mt-4 w-full py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-scifi font-bold">
                 CLOSE
               </button>
             </div>
