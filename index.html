@@ -76,26 +76,26 @@
     ];
 
     const RANK_THRESHOLDS = [
-      { rank: 'F', min: 0, max: 9 },
-      { rank: 'E', min: 10, max: 24 },
-      { rank: 'D', min: 25, max: 49 },
-      { rank: 'C', min: 50, max: 79 },
-      { rank: 'B', min: 80, max: 119 },
-      { rank: 'A', min: 120, max: 169 },
-      { rank: 'S', min: 170, max: 99999 },
+      { rank: 'F', min: 0, max: 9, cap: 10 },
+      { rank: 'E', min: 10, max: 24, cap: 25 },
+      { rank: 'D', min: 25, max: 49, cap: 50 },
+      { rank: 'C', min: 50, max: 79, cap: 80 },
+      { rank: 'B', min: 80, max: 119, cap: 120 },
+      { rank: 'A', min: 120, max: 169, cap: 170 },
+      { rank: 'S', min: 170, max: 99999, cap: 200 },
     ];
 
-    function getStatRank(val) {
+    function getStatRankInfo(val) {
       for (let i = RANK_THRESHOLDS.length - 1; i >= 0; i--) {
-        if (val >= RANK_THRESHOLDS[i].min) return RANK_THRESHOLDS[i].rank;
+        if (val >= RANK_THRESHOLDS[i].min) return RANK_THRESHOLDS[i];
       }
-      return 'F';
+      return RANK_THRESHOLDS[0];
     }
 
     function calculateOverallRank(stats) {
       const vals = [stats.strength || 0, stats.agility || 0, stats.flexibility || 0, stats.intelligence || 0].sort((a, b) => b - a);
       const top2Avg = (vals[0] + vals[1]) / 2;
-      return { rank: getStatRank(top2Avg), avgVal: Math.round(top2Avg) };
+      return { rank: getStatRankInfo(top2Avg).rank, avgVal: Math.round(top2Avg) };
     }
 
     function determineJob(stats) {
@@ -161,9 +161,8 @@
       }
     }
 
-    // 全依頼リスト（継続日数による信用条件 reqStreak を付与）
     const ALL_GUILD_QUESTS = [
-      // Fランク（常設・日銭稼ぎ）
+      // Fランク
       { id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。', reqStreak: 0, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 }, failLogs: { intelligence: '毒草と見分けがつかなかった。【知力】を鍛えよう！', flexibility: '足腰が硬く滑落した。【柔軟】を鍛えよう！' }, rewardGold: 8, rewardTitle: '草原の採取者' },
       { id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。', reqStreak: 0, reqTypes: ['筋力'], reqStats: { strength: 8 }, failLogs: { strength: '腕力が足りず泥を引き上げきれなかった。【筋力】を鍛えよう！' }, rewardGold: 10, rewardTitle: '奉仕の掃除人' },
       { id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。', reqStreak: 0, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 }, failLogs: { agility: '走るスピードが遅く見失った。【俊敏】を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 10, rewardTitle: '迷い猫の救い手' },
@@ -184,32 +183,30 @@
       { id: 'c2', rank: 'C', name: '幻影の魔術師の結界破り', desc: '迷いの森に展開された偽りの幻術結界の核を看破する。', reqStreak: 5, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 60, agility: 50 }, failLogs: { intelligence: '幻術を見抜けず道に迷った！【知力】を鍛えよう！', agility: '歪みへ飛び込む瞬発力が足りなかった。【俊敏】を鍛えよう！' }, rewardGold: 160, rewardTitle: '幻影を暴く者' },
       { id: 'c3', rank: 'C', name: '古代錬金ゴーレムの暴走停止', desc: '暴走する泥人形の魔導回路を解析し弱点を突く。', reqStreak: 5, reqTypes: ['知力', '筋力'], reqStats: { intelligence: 55, strength: 50 }, failLogs: { intelligence: '魔力回路の急所が見抜けなかった！【知力】を鍛えよう！', strength: '打ち込むパワーが足りない！【筋力】を鍛えよう！' }, rewardGold: 165, rewardTitle: '錬金の解体士' },
 
-      // Bランク（信用：鍛錬継続7日以上）
+      // Bランク
       { id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '砦を半壊させる巨大牛頭魔獣との決闘。', reqStreak: 7, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 }, failLogs: { strength: '破壊力が桁違いだ！押し切られた。【筋力】を鍛えよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【柔軟】を鍛えよう！' }, rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー' },
       { id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王との知恵比べ。', reqStreak: 7, reqTypes: ['知力'], reqStats: { intelligence: 95 }, failLogs: { intelligence: '術式の展開速度で圧倒された！【知力】を極限まで高めよう！' }, rewardGold: 380, rewardTitle: '深淵の解読者' },
       { id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する古代遺跡の大扉を開錠する。', reqStreak: 7, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 }, failLogs: { intelligence: '星盤の方程式が読み解けない！【知力】を鍛えよう！', flexibility: '狭隘な仕掛けの奥へ滑り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 360, rewardTitle: '星辰の解読士' },
       { id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '複数属性のブレスを撃ち分ける合成魔獣を翻弄する。', reqStreak: 7, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 85, agility: 85 }, failLogs: { intelligence: 'ブレスの予備動作を見失った！【知力】を鍛えよう！', agility: '同時射撃をかわせなかった！【俊敏】を鍛えよう！' }, rewardGold: 370, rewardTitle: '多頭獣狩り' },
 
-      // Aランク（信用：鍛錬継続14日以上）
+      // Aランク
       { id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '滑空するワイバーンの急所を風を読んで射抜く。', reqStreak: 14, reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 }, failLogs: { agility: '照準が追いつかない！【俊敏】を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【知力】を研ぎ澄まそう！' }, rewardGold: 700, rewardTitle: '竜殺しの鷹目' },
       { id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲と高位障壁を纏う古代兵器。', reqStreak: 14, reqTypes: ['筋力', '知力'], reqStats: { strength: 130, intelligence: 130 }, failLogs: { strength: '装甲が硬すぎる！刃が弾かれた。【筋力】を鍛えよう！', intelligence: '障壁解除コードが解読できない！【知力】を極限まで高めよう！' }, rewardGold: 750, rewardTitle: '古代の解縛者' },
       { id: 'a3', rank: 'A', name: '禁忌の降霊儀式・絶対結界遮断', desc: '都市壊滅を狙う邪神降霊陣の詠唱を逆算し遮断する。', reqStreak: 14, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 145, flexibility: 125 }, failLogs: { intelligence: '術式反転についていけない！【知力】を極限まで高めよう！', flexibility: '魔力逆流を受け流せず気絶した！【柔軟】を鍛えよう！' }, rewardGold: 780, rewardTitle: '天理の大賢者' },
 
-      // Sランク（信用：鍛錬継続30日以上）
+      // Sランク
       { id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。', reqStreak: 30, reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 }, failLogs: { strength: 'パワーが足りない！【筋力】を極めよう！', agility: 'ブレスを回避できない！【俊敏】を極めよう！', flexibility: '衝撃波をいなせない！【柔軟】を極めよう！', intelligence: '結界の真理を見破れない！【知力】を極めよう！' }, rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者' },
       { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' }
     ];
 
-    // 日付シードをもとに「本日の公開依頼」を日替わり抽出する関数
     function getDailyAvailableQuests(dayTimestamp) {
       const date = new Date(dayTimestamp);
       const dayNum = Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
       
       return ALL_GUILD_QUESTS.filter(q => {
-        if (q.rank === 'F') return true; // Fランクは毎日いつでも受注可能
-        // Eランク以上は日付の擬似ハッシュで数日おき・ランダムに掲示板へ登場
+        if (q.rank === 'F') return true;
         const hash = (dayNum * 17 + q.id.charCodeAt(0) * 13 + q.id.charCodeAt(1) * 7) % 100;
-        return hash < 55; // 約55%の確率でその日に掲示板へ出現
+        return hash < 55;
       });
     }
 
@@ -240,7 +237,7 @@
       const [selectedRankTab, setSelectedRankTab] = useState('F');
       const [questResultModal, setQuestResultModal] = useState(null);
       const [innBillNotice, setInnBillNotice] = useState(null);
-      const [blockedNotice, setBlockedNotice] = useState(null); // クリア済 or 信用不足などの警告
+      const [blockedNotice, setBlockedNotice] = useState(null);
 
       const [timerSeconds, setTimerSeconds] = useState(0);
       const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -251,7 +248,7 @@
       const currentJob = determineJob(player.stats);
       const inn = getInnInfo(currentJob.tier);
 
-      // 日付変更チェック（生活費引き落とし & 減衰 & クリア状況リセット & 継続日数更新）
+      // 日付変更チェック
       useEffect(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -279,7 +276,6 @@
               }
             });
 
-            // 1日サボると継続日数リセット、毎日起動していれば加算
             const newStreak = diffDays === 1 ? (player.streakCount || 1) + 1 : 1;
 
             setPlayer(prev => ({
@@ -392,7 +388,6 @@
         if (window.confetti) window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
       };
 
-      // 依頼挑戦処理（達成済判定 & ギルド信用度・継続日数判定）
       const handleAttemptQuest = (quest) => {
         const clearedList = player.dailyClearedQuests || [];
         if (clearedList.includes(quest.id)) {
@@ -461,7 +456,6 @@
       const themeBtn = theme === 'cyan' ? 'bg-cyan-500 text-slate-950' : theme === 'purple' ? 'bg-purple-600 text-white' : 'bg-pink-500 text-white';
       const themeShadow = theme === 'cyan' ? 'shadow-neon-cyan' : theme === 'purple' ? 'shadow-neon-purple' : 'shadow-neon-pink';
 
-      // 本日の公開依頼一覧（日替わりフィルター）
       const todayQuests = getDailyAvailableQuests(player.lastActiveDate || Date.now());
       const filteredQuests = todayQuests.filter(q => q.rank === selectedRankTab);
       const dailyCleared = player.dailyClearedQuests || [];
@@ -541,22 +535,22 @@
                 <div className="bg-slate-950/70 p-1.5 rounded-xl border border-red-900/40">
                   <div className="text-[9px] text-red-400 font-bold">筋力</div>
                   <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.strength}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.strength)}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(player.stats.strength).rank}</div>
                 </div>
                 <div className="bg-slate-950/70 p-1.5 rounded-xl border border-cyan-900/40">
                   <div className="text-[9px] text-cyan-400 font-bold">俊敏</div>
                   <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.agility}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.agility)}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(player.stats.agility).rank}</div>
                 </div>
                 <div className="bg-slate-950/70 p-1.5 rounded-xl border border-emerald-900/40">
                   <div className="text-[9px] text-emerald-400 font-bold">柔軟</div>
                   <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.flexibility}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.flexibility)}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(player.stats.flexibility).rank}</div>
                 </div>
                 <div className="bg-slate-950/70 p-1.5 rounded-xl border border-purple-900/40">
                   <div className="text-[9px] text-purple-400 font-bold">知力</div>
                   <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.intelligence}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.intelligence)}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(player.stats.intelligence).rank}</div>
                 </div>
               </div>
             </div>
@@ -620,7 +614,7 @@
                   </div>
                 </div>
 
-                {/* 鍛錬メニュー選択（+2(20回) 形式で表記） */}
+                {/* 鍛錬メニュー選択 */}
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択</div>
                   <div className="grid grid-cols-3 gap-2">
@@ -691,8 +685,6 @@
                     ) : (
                       filteredQuests.map(q => {
                         const isClear = dailyCleared.includes(q.id);
-                        const curStreak = player.streakCount || 1;
-                        const isLockedByStreak = q.reqStreak > 0 && curStreak < q.reqStreak;
 
                         return (
                           <div key={q.id} className="p-3 rounded-xl border border-slate-800 bg-slate-950/70 space-y-2">
@@ -703,11 +695,6 @@
                                   {isClear && (
                                     <span className="text-[9px] font-scifi font-black text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-400 tracking-wider">
                                       CLEAR
-                                    </span>
-                                  )}
-                                  {isLockedByStreak && (
-                                    <span className="text-[9px] text-red-400 bg-red-950/80 px-1.5 py-0.5 rounded border border-red-500/40">
-                                      信用不足 (継続{q.reqStreak}日必要)
                                     </span>
                                   )}
                                 </div>
@@ -722,15 +709,9 @@
                               </div>
                               <button
                                 onClick={() => handleAttemptQuest(q)}
-                                className={`px-3 py-1 rounded-lg font-bold text-xs active:scale-95 transition ${
-                                  isClear 
-                                    ? 'bg-slate-800 text-slate-400 border border-slate-700' 
-                                    : isLockedByStreak 
-                                    ? 'bg-red-950/50 text-red-300 border border-red-800/60'
-                                    : themeBtn
-                                }`}
+                                className={`px-3 py-1 rounded-lg font-bold text-xs active:scale-95 transition ${themeBtn}`}
                               >
-                                {isClear ? '達成済' : isLockedByStreak ? '信用不足' : '挑戦する'}
+                                挑戦する
                               </button>
                             </div>
                           </div>
@@ -895,13 +876,19 @@
                   【{currentJob.name}】 ({currentJob.tier})
                 </div>
                 <div className="text-[11px] text-slate-400">{currentJob.desc}</div>
+
+                {/* 宿屋情報表記の復元 */}
+                <div className="text-[11px] text-slate-300 font-mono bg-slate-950/60 py-1 px-2.5 rounded-lg border border-slate-800 inline-block">
+                  🏨 滞在: <strong className="text-amber-300">{inn.name}</strong> ({inn.costPerDay} G/日)
+                </div>
+
                 <div className="flex justify-center items-center space-x-3 text-xs font-scifi font-bold pt-1">
                   <span className="text-slate-400">総合Rank <strong className={`text-base ${themeText}`}>{overall.rank}</strong></span>
                   <span className={player.gold < 0 ? 'text-red-400' : 'text-amber-300'}>🪙 {player.gold} G</span>
                 </div>
               </div>
 
-              {/* 能力値バー */}
+              {/* 能力値バー（分数表記：現在値 / 次ランク目標値） */}
               <div className="mt-3 space-y-2">
                 {[
                   { name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
@@ -909,17 +896,16 @@
                   { name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400', bar: 'from-emerald-500 to-teal-500' },
                   { name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400', bar: 'from-purple-500 to-indigo-500' },
                 ].map(s => {
-                  const r = getStatRank(s.val);
-                  const currentCap = s.val < 10 ? 10 : s.val < 25 ? 25 : s.val < 50 ? 50 : s.val < 80 ? 80 : s.val < 120 ? 120 : s.val < 170 ? 170 : 200;
-                  const pct = Math.min(100, Math.floor((s.val / currentCap) * 100));
+                  const info = getStatRankInfo(s.val);
+                  const pct = Math.min(100, Math.floor((s.val / info.cap) * 100));
 
                   return (
                     <div key={s.name} className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
                       <div className="flex justify-between items-center text-xs">
                         <span className={`font-bold ${s.color}`}>{s.name}</span>
                         <div className="flex items-center space-x-1.5 font-mono">
-                          <span className="text-white font-bold text-sm">{s.val}</span>
-                          <span className="text-amber-300 font-bold font-scifi">[Rank {r}]</span>
+                          <span className="text-white font-bold text-sm">{s.val} / {info.cap}</span>
+                          <span className="text-amber-300 font-bold font-scifi">[Rank {info.rank}]</span>
                         </div>
                       </div>
                       <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
