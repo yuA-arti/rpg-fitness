@@ -60,7 +60,6 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // レトロRPG風 ギルド受付嬢クレアのドット絵 (16x16 Pixel Art)
     function GuildReceptionistPixel({ size = 52 }) {
       return (
         <svg 
@@ -69,23 +68,17 @@
           height={size} 
           className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40"
         >
-          {/* 帽子・リボン */}
           <rect x="5" y="1" width="6" height="2" fill="#0284c7" />
           <rect x="7" y="0" width="2" height="1" fill="#f59e0b" />
-          {/* 髪 */}
           <rect x="4" y="3" width="8" height="2" fill="#92400e" />
           <rect x="3" y="5" width="2" height="5" fill="#92400e" />
           <rect x="11" y="5" width="2" height="5" fill="#92400e" />
-          {/* 肌 */}
           <rect x="5" y="5" width="6" height="5" fill="#fed7aa" />
-          {/* 瞳 */}
           <rect x="6" y="6" width="1" height="2" fill="#0f172a" />
           <rect x="9" y="6" width="1" height="2" fill="#0f172a" />
-          {/* チーク・口元 */}
           <rect x="5" y="8" width="1" height="1" fill="#f43f5e" />
           <rect x="10" y="8" width="1" height="1" fill="#f43f5e" />
           <rect x="7" y="8" width="2" height="1" fill="#ea580c" />
-          {/* 制服 */}
           <rect x="5" y="10" width="6" height="2" fill="#ffffff" />
           <rect x="7" y="10" width="2" height="2" fill="#e11d48" />
           <rect x="4" y="12" width="8" height="3" fill="#0369a1" />
@@ -98,22 +91,22 @@
     }
 
     const PRESETS = [
-      // 筋力 (STR)
-      { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'dumbbell' },
-      { id: 'situps', name: '腹筋', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'shield' },
-      { id: 'squats', name: 'スクワット', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'zap' },
-      // 俊敏 (AGI)
-      { id: 'running', name: 'ランニング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, icon: 'flame' },
-      { id: 'walking', name: 'ウォーキング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, icon: 'activity' },
-      { id: 'jump_rope', name: '縄跳び / バーピー', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 10, stepVal: 10, gain: 3, icon: 'wind' },
-      // 柔軟 (FEX)
-      { id: 'stretch', name: 'ストレッチ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, icon: 'heart' },
-      { id: 'yoga', name: 'ヨガ / 体幹', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, icon: 'sparkles' },
-      { id: 'splits', name: '開脚 / 股関節柔軟', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, icon: 'smile' },
-      // 知力 (INT)
-      { id: 'reading', name: '読書', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, icon: 'book-open' },
-      { id: 'study', name: '勉強 / 資格学習', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, icon: 'brain' },
-      { id: 'language', name: '言語学習 / 暗記', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, icon: 'languages' },
+      // 筋力 (STR) - 上限300回
+      { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300, icon: 'dumbbell' },
+      { id: 'situps', name: '腹筋', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300, icon: 'shield' },
+      { id: 'squats', name: 'スクワット', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300, icon: 'zap' },
+      // 俊敏 (AGI) - 上限240分
+      { id: 'running', name: 'ランニング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, limit: 240, icon: 'flame' },
+      { id: 'walking', name: 'ウォーキング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 240, icon: 'activity' },
+      { id: 'jump_rope', name: '縄跳び / バーピー', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 10, stepVal: 10, gain: 3, limit: 240, icon: 'wind' },
+      // 柔軟 (FEX) - 上限180分
+      { id: 'stretch', name: 'ストレッチ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180, icon: 'heart' },
+      { id: 'yoga', name: 'ヨガ / 体幹', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180, icon: 'sparkles' },
+      { id: 'splits', name: '開脚 / 股関節柔軟', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180, icon: 'smile' },
+      // 知力 (INT) - 上限360分
+      { id: 'reading', name: '読書', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360, icon: 'book-open' },
+      { id: 'study', name: '勉強 / 資格学習', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360, icon: 'brain' },
+      { id: 'language', name: '言語学習 / 暗記', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 360, icon: 'languages' },
     ];
 
     const RANK_THRESHOLDS = [
@@ -203,39 +196,32 @@
     }
 
     const ALL_GUILD_QUESTS = [
-      // Fランク
       { id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。', reqStreak: 0, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 }, failLogs: { intelligence: '毒草と見分けがつかなかった。【知力】を鍛えよう！', flexibility: '足腰が硬く滑落した。【柔軟】を鍛えよう！' }, rewardGold: 8, rewardTitle: '草原の採取者' },
       { id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。', reqStreak: 0, reqTypes: ['筋力'], reqStats: { strength: 8 }, failLogs: { strength: '腕力が足りず泥を引き上げきれなかった。【筋力】を鍛えよう！' }, rewardGold: 10, rewardTitle: '奉仕の掃除人' },
       { id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。', reqStreak: 0, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 }, failLogs: { agility: '走るスピードが遅く見失った。【俊敏】を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 10, rewardTitle: '迷い猫の救い手' },
       { id: 'f4', rank: 'F', name: 'ギルド書庫の羊皮紙整理', desc: '乱雑に積まれた古い文献を読み解き仕分ける。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 8 }, failLogs: { intelligence: '古代文字が読めず整理が進まなかった。【知力】を鍛えよう！' }, rewardGold: 9, rewardTitle: '書庫の見習い手' },
 
-      // Eランク
       { id: 'e1', rank: 'E', name: 'ジャイアントラット駆除', desc: '食料庫を荒らす巨大ネズミの群れを仕留める。', reqStreak: 0, reqTypes: ['俊敏'], reqStats: { agility: 15 }, failLogs: { agility: '踏み込みが遅い！翻弄された。【俊敏】を鍛えよう！' }, rewardGold: 20, rewardTitle: '害獣ハンター' },
       { id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。', reqStreak: 0, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 }, failLogs: { strength: 'パワー負け！弾き飛ばされた。【筋力】を鍛えよう！', flexibility: '衝撃を体幹で受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 25, rewardTitle: '畑の守護者' },
       { id: 'e3', rank: 'E', name: '初級魔法スクロールの解読', desc: '魔力暴走を起こした巻物の呪文式を冷静に分析する。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 18 }, failLogs: { intelligence: '呪文式の解読が追いつかず暴走した！【知力】を鍛えよう！' }, rewardGold: 24, rewardTitle: '魔導の書生' },
 
-      // Dランク
       { id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。', reqStreak: 3, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 }, failLogs: { strength: '打ち込みが浅く倒しきれなかった。【筋力】を鍛えよう！', agility: 'ステップについていけなかった。【俊敏】を鍛えよう！' }, rewardGold: 60, rewardTitle: '斥候スレイヤー' },
       { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！', flexibility: '怪異の衝撃波を受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
       { id: 'd3', rank: 'D', name: '盗賊団の暗号通信解読', desc: '街道を脅かす盗賊の密書を解析し奇襲を防ぐ。', reqStreak: 3, reqTypes: ['知力'], reqStats: { intelligence: 35 }, failLogs: { intelligence: '暗号の法則を見抜けなかった！【知力】を鍛えよう！' }, rewardGold: 70, rewardTitle: '見抜く眼' },
 
-      // Cランク
       { id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。', reqStreak: 5, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 }, failLogs: { strength: '重い棍棒に力負けし弾かれた！【筋力】を鍛えよう！', flexibility: '打撃を受け止めきれなかった！【柔軟】を鍛えよう！' }, rewardGold: 150, rewardTitle: '豪傑の武芸者' },
       { id: 'c2', rank: 'C', name: '幻影の魔術師の結界破り', desc: '迷いの森に展開された偽りの幻術結界の核を看破する。', reqStreak: 5, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 60, agility: 50 }, failLogs: { intelligence: '幻術を見抜けず道に迷った！【知力】を鍛えよう！', agility: '歪みへ飛び込む瞬発力が足りなかった。【俊敏】を鍛えよう！' }, rewardGold: 160, rewardTitle: '幻影を暴く者' },
       { id: 'c3', rank: 'C', name: '古代錬金ゴーレムの暴走停止', desc: '暴走する泥人形の魔導回路を解析し弱点を突く。', reqStreak: 5, reqTypes: ['知力', '筋力'], reqStats: { intelligence: 55, strength: 50 }, failLogs: { intelligence: '魔力回路の急所が見抜けなかった！【知力】を鍛えよう！', strength: '打ち込むパワーが足りない！【筋力】を鍛えよう！' }, rewardGold: 165, rewardTitle: '錬金の解体士' },
 
-      // Bランク
       { id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '砦を半壊させる巨大牛頭魔獣との決闘。', reqStreak: 7, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 }, failLogs: { strength: '破壊力が桁違いだ！押し切られた。【筋力】を鍛えよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【柔軟】を鍛えよう！' }, rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー' },
       { id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王との知恵比べ。', reqStreak: 7, reqTypes: ['知力'], reqStats: { intelligence: 95 }, failLogs: { intelligence: '術式の展開速度で圧倒された！【知力】を極限まで高めよう！' }, rewardGold: 380, rewardTitle: '深淵の解読者' },
       { id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する古代遺跡の大扉を開錠する。', reqStreak: 7, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 }, failLogs: { intelligence: '星盤の方程式が読み解けない！【知力】を鍛えよう！', flexibility: '狭隘な仕掛けの奥へ滑り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 360, rewardTitle: '星辰の解読士' },
       { id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '複数属性のブレスを撃ち分ける合成魔獣を翻弄する。', reqStreak: 7, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 85, agility: 85 }, failLogs: { intelligence: 'ブレスの予備動作を見失った！【知力】を鍛えよう！', agility: '同時射撃をかわせなかった！【俊敏】を鍛えよう！' }, rewardGold: 370, rewardTitle: '多頭獣狩り' },
 
-      // Aランク
       { id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '滑空するワイバーンの急所を風を読んで射抜く。', reqStreak: 14, reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 }, failLogs: { agility: '照準が追いつかない！【俊敏】を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【知力】を研ぎ澄まそう！' }, rewardGold: 700, rewardTitle: '竜殺しの鷹目' },
       { id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲と高位障壁を纏う古代兵器。', reqStreak: 14, reqTypes: ['筋力', '知力'], reqStats: { strength: 130, intelligence: 130 }, failLogs: { strength: '装甲が硬すぎる！刃が弾かれた。【筋力】を鍛えよう！', intelligence: '障壁解除コードが解読できない！【知力】を極限まで高めよう！' }, rewardGold: 750, rewardTitle: '古代の解縛者' },
       { id: 'a3', rank: 'A', name: '禁忌の降霊儀式・絶対結界遮断', desc: '都市壊滅を狙う邪神降霊陣の詠唱を逆算し遮断する。', reqStreak: 14, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 145, flexibility: 125 }, failLogs: { intelligence: '術式反転についていけない！【知力】を極限まで高めよう！', flexibility: '魔力逆流を受け流せず気絶した！【柔軟】を鍛えよう！' }, rewardGold: 780, rewardTitle: '天理の大賢者' },
 
-      // Sランク
       { id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。', reqStreak: 30, reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 }, failLogs: { strength: 'パワーが足りない！【筋力】を極めよう！', agility: 'ブレスを回避できない！【俊敏】を極めよう！', flexibility: '衝撃波をいなせない！【柔軟】を極めよう！', intelligence: '結界の真理を見破れない！【知力】を極めよう！' }, rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者' },
       { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' }
     ];
@@ -243,7 +229,6 @@
     function getDailyAvailableQuests(dayTimestamp) {
       const date = new Date(dayTimestamp);
       const dayNum = Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
-      
       const ranks = ['F', 'E', 'D', 'C', 'B', 'A', 'S'];
       const result = [];
 
@@ -305,6 +290,7 @@
       const [questResultModal, setQuestResultModal] = useState(null);
       const [innBillNotice, setInnBillNotice] = useState(null);
       const [blockedNotice, setBlockedNotice] = useState(null);
+      const [cheatWarningNotice, setCheatWarningNotice] = useState(null); // チート警告モーダル
 
       const [timerSeconds, setTimerSeconds] = useState(0);
       const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -315,7 +301,6 @@
       const currentJob = determineJob(player.stats);
       const inn = getInnInfo(currentJob.tier);
 
-      // 日付変更チェック
       useEffect(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -372,7 +357,7 @@
 
       useEffect(() => {
         if (window.lucide) window.lucide.createIcons();
-      }, [activeTab, selectedPreset, isStatusOpen, isSettingsOpen, isResetConfirmOpen, isNameEditOpen, selectedRankTab, questResultModal, innBillNotice, blockedNotice, player]);
+      }, [activeTab, selectedPreset, isStatusOpen, isSettingsOpen, isResetConfirmOpen, isNameEditOpen, selectedRankTab, questResultModal, innBillNotice, blockedNotice, cheatWarningNotice, player]);
 
       useEffect(() => {
         if (isTimerRunning) {
@@ -438,7 +423,6 @@
         reader.readAsDataURL(file);
       };
 
-      // 名前保存
       const handleSaveName = () => {
         const trimmed = tempName.trim();
         if (trimmed) {
@@ -447,7 +431,6 @@
         setIsNameEditOpen(false);
       };
 
-      // データ初期化
       const executeReset = () => {
         localStorage.removeItem('rpg_fitness_player_guild_v19');
         setPlayer(INITIAL_PLAYER_DATA);
@@ -457,9 +440,21 @@
         window.location.reload();
       };
 
+      // 鍛錬記録（チート判定付き）
       const handleRecord = () => {
         const amount = Number(inputValue);
         if (!amount || amount <= 0) return;
+
+        // チート上限判定
+        if (amount > selectedPreset.limit) {
+          setCheatWarningNotice({
+            taskName: selectedPreset.name,
+            amount: amount,
+            unit: selectedPreset.unit,
+            limit: selectedPreset.limit
+          });
+          return;
+        }
 
         let gained = Math.floor(amount / selectedPreset.stepVal) * selectedPreset.gain;
         if (gained < 1) gained = selectedPreset.gain;
@@ -479,7 +474,6 @@
         if (window.confetti) window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
       };
 
-      // 依頼挑戦（クレアのセリフ付き警告モーダル）
       const handleAttemptQuest = (quest) => {
         const clearedList = player.dailyClearedQuests || [];
         if (clearedList.includes(quest.id)) {
@@ -707,7 +701,7 @@
                   </div>
                   <div className="flex items-center space-x-2 pt-1">
                     <input
-                      type="number" min="1" max="999" value={inputValue}
+                      type="number" min="1" max="9999" value={inputValue}
                       onChange={(e) => setInputValue(Math.max(1, parseInt(e.target.value) || 1))}
                       className="w-24 bg-slate-950 border-2 border-slate-700 rounded-xl py-2 text-center text-xl font-scifi font-bold text-white focus:outline-none focus:border-cyan-400"
                     />
@@ -879,6 +873,40 @@
             </div>
           </div>
 
+          {/* 監査官クレアのチート疑惑・警告モーダル */}
+          {cheatWarningNotice && (
+            <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
+              <div className="bg-slate-900 border-2 border-red-500/80 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-2xl text-center">
+                <div className="flex justify-center">
+                  <GuildReceptionistPixel size={64} />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] text-red-400 font-bold bg-red-950/90 px-2 py-0.5 rounded border border-red-500/40">
+                    ギルド監査官 クレア
+                  </span>
+                  <h3 className="font-bold text-sm text-white pt-1">鍛錬記録の監査警告</h3>
+                </div>
+                <div className="bg-slate-950/80 p-3 rounded-2xl border border-red-900/50 text-left">
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                    「……あの、{player.name}さん？<br/>
+                    ギルドの記録によると、今<strong className="text-red-400">【{cheatWarningNotice.taskName} {cheatWarningNotice.amount.toLocaleString()}{cheatWarningNotice.unit}】</strong>って申請されてますよね……？<br/><br/>
+                    勇者様でも筋肉が爆発しちゃいます！入力ミス……ですよね？<br/>
+                    ギルドの信用に関わりますので、正しい数字で再申請してくださいね！」
+                  </p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setInputValue(selectedPreset.defaultVal);
+                    setCheatWarningNotice(null);
+                  }} 
+                  className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow transition active:scale-95"
+                >
+                  正直に入力し直す
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* クレアの案内モーダル（信用不足 or 達成済） */}
           {blockedNotice && (
             <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 animate-fade-in">
@@ -1012,7 +1040,6 @@
                   </div>
                 </div>
 
-                {/* 冒険者名（編集機能付き） */}
                 <div className="flex items-center justify-center space-x-1.5">
                   <span className="font-scifi font-black text-xl text-white tracking-wide">{player.name}</span>
                   <button 
@@ -1039,7 +1066,7 @@
                 </div>
               </div>
 
-              {/* 能力値バー（分数表示） */}
+              {/* 能力値バー */}
               <div className="mt-3 space-y-2">
                 {[
                   { name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
@@ -1134,7 +1161,7 @@
             </div>
           )}
 
-          {/* 初期化「本当に初期化しますか？」二重確認モーダル */}
+          {/* 初期化確認モーダル */}
           {isResetConfirmOpen && (
             <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6">
               <div className="bg-slate-900 border-2 border-red-500/80 rounded-2xl p-5 max-w-xs w-full text-center space-y-3.5 shadow-2xl animate-fade-in">
