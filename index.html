@@ -60,6 +60,7 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
+    // ギルド受付嬢クレアのドット絵（栗色ボブ・明るい制服）
     function GuildReceptionistPixel({ size = 52 }) {
       return (
         <svg 
@@ -84,6 +85,42 @@
           <rect x="4" y="12" width="8" height="3" fill="#0369a1" />
           <rect x="6" y="12" width="4" height="3" fill="#f8fafc" />
           <rect x="7" y="13" width="2" height="1" fill="#f59e0b" />
+          <rect x="3" y="13" width="1" height="2" fill="#fed7aa" />
+          <rect x="12" y="13" width="1" height="2" fill="#fed7aa" />
+        </svg>
+      );
+    }
+
+    // ギルド監査官ミレイのドット絵（銀髪・メガネ・厳格なダークネイビー制服）
+    function GuildAuditorPixel({ size = 56 }) {
+      return (
+        <svg 
+          viewBox="0 0 16 16" 
+          width={size} 
+          height={size} 
+          className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60"
+        >
+          {/* 銀髪・ベレー帽 */}
+          <rect x="5" y="1" width="6" height="2" fill="#1e1b4b" />
+          <rect x="4" y="3" width="8" height="2" fill="#cbd5e1" />
+          <rect x="3" y="5" width="2" height="5" fill="#cbd5e1" />
+          <rect x="11" y="5" width="2" height="5" fill="#cbd5e1" />
+          {/* 肌 */}
+          <rect x="5" y="5" width="6" height="5" fill="#fed7aa" />
+          {/* 赤ぶちメガネ */}
+          <rect x="5" y="6" width="3" height="2" stroke="#dc2626" strokeWidth="0.6" fill="none" />
+          <rect x="8" y="6" width="3" height="2" stroke="#dc2626" strokeWidth="0.6" fill="none" />
+          {/* 瞳（鋭い青） */}
+          <rect x="6" y="6" width="1" height="1" fill="#2563eb" />
+          <rect x="9" y="6" width="1" height="1" fill="#2563eb" />
+          {/* 真面目な一文字口 */}
+          <rect x="7" y="8" width="2" height="1" fill="#991b1b" />
+          {/* 監査官制服（ダークネイビー＆ゴールド章） */}
+          <rect x="5" y="10" width="6" height="2" fill="#0f172a" />
+          <rect x="7" y="10" width="2" height="1" fill="#e2e8f0" />
+          <rect x="7" y="11" width="2" height="1" fill="#eab308" />
+          <rect x="4" y="12" width="8" height="3" fill="#1e1b4b" />
+          <rect x="6" y="12" width="4" height="3" fill="#312e81" />
           <rect x="3" y="13" width="1" height="2" fill="#fed7aa" />
           <rect x="12" y="13" width="1" height="2" fill="#fed7aa" />
         </svg>
@@ -290,7 +327,7 @@
       const [questResultModal, setQuestResultModal] = useState(null);
       const [innBillNotice, setInnBillNotice] = useState(null);
       const [blockedNotice, setBlockedNotice] = useState(null);
-      const [cheatWarningNotice, setCheatWarningNotice] = useState(null); // チート警告モーダル
+      const [cheatWarningNotice, setCheatWarningNotice] = useState(null);
 
       const [timerSeconds, setTimerSeconds] = useState(0);
       const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -440,12 +477,11 @@
         window.location.reload();
       };
 
-      // 鍛錬記録（チート判定付き）
+      // 鍛錬記録（監査官ミレイの魔力ドーピング疑い検知）
       const handleRecord = () => {
         const amount = Number(inputValue);
         if (!amount || amount <= 0) return;
 
-        // チート上限判定
         if (amount > selectedPreset.limit) {
           setCheatWarningNotice({
             taskName: selectedPreset.name,
@@ -873,25 +909,25 @@
             </div>
           </div>
 
-          {/* 監査官クレアのチート疑惑・警告モーダル */}
+          {/* 監査官ミレイの魔力ドーピング疑い・警告モーダル */}
           {cheatWarningNotice && (
             <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
               <div className="bg-slate-900 border-2 border-red-500/80 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-2xl text-center">
                 <div className="flex justify-center">
-                  <GuildReceptionistPixel size={64} />
+                  <GuildAuditorPixel size={64} />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] text-red-400 font-bold bg-red-950/90 px-2 py-0.5 rounded border border-red-500/40">
-                    ギルド監査官 クレア
+                  <span className="text-[10px] text-red-400 font-bold bg-red-950/90 px-2.5 py-0.5 rounded border border-red-500/50">
+                    ギルド監査官 ミレイ
                   </span>
-                  <h3 className="font-bold text-sm text-white pt-1">鍛錬記録の監査警告</h3>
+                  <h3 className="font-bold text-sm text-white pt-1">魔力ドーピング疑い（監査警告）</h3>
                 </div>
-                <div className="bg-slate-950/80 p-3 rounded-2xl border border-red-900/50 text-left">
+                <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-red-900/50 text-left">
                   <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                    「……あの、{player.name}さん？<br/>
-                    ギルドの記録によると、今<strong className="text-red-400">【{cheatWarningNotice.taskName} {cheatWarningNotice.amount.toLocaleString()}{cheatWarningNotice.unit}】</strong>って申請されてますよね……？<br/><br/>
-                    勇者様でも筋肉が爆発しちゃいます！入力ミス……ですよね？<br/>
-                    ギルドの信用に関わりますので、正しい数字で再申請してくださいね！」
+                    「ちょっと待ってください！<br/>
+                    たった今、人体の上限を超える異常な魔力反応（チート疑惑）を感知しました！<br/><br/>
+                    <strong className="text-red-400">{player.name}</strong>さん、禁忌のドーピング薬を飲んだりしていませんか……？<br/><br/>
+                    ギルド規約第7条に基づき、この記録は受理できません！ 正直に再申請してください！」
                   </p>
                 </div>
                 <button 
@@ -901,13 +937,13 @@
                   }} 
                   className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow transition active:scale-95"
                 >
-                  正直に入力し直す
+                  正直に再申請する
                 </button>
               </div>
             </div>
           )}
 
-          {/* クレアの案内モーダル（信用不足 or 達成済） */}
+          {/* 受付嬢クレアの案内モーダル（信用不足 or 達成済） */}
           {blockedNotice && (
             <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 animate-fade-in">
               <div className="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-neon-gold text-center">
@@ -1040,6 +1076,7 @@
                   </div>
                 </div>
 
+                {/* 冒険者名 */}
                 <div className="flex items-center justify-center space-x-1.5">
                   <span className="font-scifi font-black text-xl text-white tracking-wide">{player.name}</span>
                   <button 
