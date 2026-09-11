@@ -162,7 +162,7 @@
     }
 
     const ALL_GUILD_QUESTS = [
-      // Fランク
+      // Fランク（常設・日銭稼ぎ）
       { id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。', reqStreak: 0, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 }, failLogs: { intelligence: '毒草と見分けがつかなかった。【知力】を鍛えよう！', flexibility: '足腰が硬く滑落した。【柔軟】を鍛えよう！' }, rewardGold: 8, rewardTitle: '草原の採取者' },
       { id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。', reqStreak: 0, reqTypes: ['筋力'], reqStats: { strength: 8 }, failLogs: { strength: '腕力が足りず泥を引き上げきれなかった。【筋力】を鍛えよう！' }, rewardGold: 10, rewardTitle: '奉仕の掃除人' },
       { id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。', reqStreak: 0, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 }, failLogs: { agility: '走るスピードが遅く見失った。【俊敏】を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 10, rewardTitle: '迷い猫の救い手' },
@@ -199,15 +199,39 @@
       { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' }
     ];
 
+    // 各ランクから必ず最低1〜2件が確実に公開される保証付き日替わり抽出関数
     function getDailyAvailableQuests(dayTimestamp) {
       const date = new Date(dayTimestamp);
       const dayNum = Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
       
-      return ALL_GUILD_QUESTS.filter(q => {
-        if (q.rank === 'F') return true;
-        const hash = (dayNum * 17 + q.id.charCodeAt(0) * 13 + q.id.charCodeAt(1) * 7) % 100;
-        return hash < 55;
+      const ranks = ['F', 'E', 'D', 'C', 'B', 'A', 'S'];
+      const result = [];
+
+      ranks.forEach(r => {
+        const questsInRank = ALL_GUILD_QUESTS.filter(q => q.rank === r);
+        if (questsInRank.length === 0) return;
+
+        if (r === 'F') {
+          // Fランクは基礎労働として全件公開
+          result.push(...questsInRank);
+        } else {
+          // 日付に基づいて日替わりの先頭1件を必ず保証抽出
+          const primaryIdx = Math.abs(dayNum) % questsInRank.length;
+          result.push(questsInRank[primaryIdx]);
+
+          // 残りの依頼から約50%の確率で追加公開（0件には絶対にならない）
+          questsInRank.forEach((q, idx) => {
+            if (idx !== primaryIdx) {
+              const hash = (dayNum * 19 + q.id.charCodeAt(0) * 11 + idx * 7) % 100;
+              if (hash < 50) {
+                result.push(q);
+              }
+            }
+          });
+        }
       });
+
+      return result;
     }
 
     function App() {
@@ -320,6 +344,11 @@
         const m = Math.floor(sec / 60);
         const s = sec % 60;
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      };
+
+      const handleResetTimer = () => {
+        setIsTimerRunning(false);
+        setTimerSeconds(0);
       };
 
       const cycleThemeColor = () => {
@@ -558,7 +587,7 @@
             {/* ① 鍛錬タブ */}
             {activeTab === 'train' && (
               <div className="space-y-3">
-                {/* クエストタイマー */}
+                {/* クエストタイマー（リセットボタン付き） */}
                 <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex items-center justify-between shadow-lg">
                   <div>
                     <div className="text-[10px] text-slate-400 font-bold">QUEST TIMER</div>
@@ -567,7 +596,7 @@
                   <div className="flex items-center space-x-1.5">
                     <button
                       onClick={() => setIsTimerRunning(!isTimerRunning)}
-                      className={`px-3.5 py-2 rounded-xl font-bold text-xs transition ${
+                      className={`px-3 py-2 rounded-xl font-bold text-xs transition ${
                         isTimerRunning ? 'bg-amber-500 text-slate-950' : themeBtn
                       }`}
                     >
@@ -576,11 +605,18 @@
                     {timerSeconds > 0 && (
                       <button
                         onClick={() => { setIsTimerRunning(false); setInputValue(Math.max(1, Math.round(timerSeconds / 60))); }}
-                        className="px-2.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold"
+                        className="px-2 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold"
                       >
                         反映
                       </button>
                     )}
+                    <button
+                      onClick={handleResetTimer}
+                      title="タイマーをリセット"
+                      className="px-2 py-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white border border-slate-700 text-xs font-bold transition"
+                    >
+                      リセット
+                    </button>
                   </div>
                 </div>
 
@@ -757,7 +793,7 @@
             </div>
           </div>
 
-          {/* 警告モーダル（達成済 or 信用不足） */}
+          {/* 警告モーダル */}
           {blockedNotice && (
             <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-6">
               <div className="bg-slate-900 border border-amber-500/50 rounded-2xl p-5 max-w-xs w-full text-center space-y-3">
@@ -877,7 +913,6 @@
                 </div>
                 <div className="text-[11px] text-slate-400">{currentJob.desc}</div>
 
-                {/* 宿屋情報表記の復元 */}
                 <div className="text-[11px] text-slate-300 font-mono bg-slate-950/60 py-1 px-2.5 rounded-lg border border-slate-800 inline-block">
                   🏨 滞在: <strong className="text-amber-300">{inn.name}</strong> ({inn.costPerDay} G/日)
                 </div>
@@ -888,7 +923,7 @@
                 </div>
               </div>
 
-              {/* 能力値バー（分数表記：現在値 / 次ランク目標値） */}
+              {/* 能力値バー（分数表記） */}
               <div className="mt-3 space-y-2">
                 {[
                   { name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
