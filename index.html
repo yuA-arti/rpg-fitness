@@ -56,7 +56,6 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // 4ステータス × 各3種 ＝ 全12種の鍛錬プリセット
     const PRESETS = [
       // 筋力 (STR)
       { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, icon: 'dumbbell' },
@@ -91,13 +90,6 @@
         if (val >= RANK_THRESHOLDS[i].min) return RANK_THRESHOLDS[i].rank;
       }
       return 'F';
-    }
-
-    function getNextRankThreshold(val) {
-      for (let t of RANK_THRESHOLDS) {
-        if (val <= t.max) return { currentMax: t.max, nextRank: t.rank === 'S' ? 'MAX' : RANK_THRESHOLDS[RANK_THRESHOLDS.indexOf(t) + 1]?.rank, nextMin: t.max + 1 };
-      }
-      return { currentMax: 999, nextRank: 'MAX', nextMin: 999 };
     }
 
     function calculateOverallRank(stats) {
@@ -159,167 +151,67 @@
       }
     }
 
-    const GUILD_QUESTS = [
-      // Fランク
-      {
-        id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。',
-        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 },
-        failLogs: { intelligence: '毒草と見分けがつかなかった。【読書/勉強/言語学習】で知力を鍛えよう！', flexibility: '斜面で足腰が硬く滑落してしまった。【ストレッチ/ヨガ/開脚】で柔軟を鍛えよう！' },
-        rewardGold: 8, rewardTitle: '草原の採取者'
-      },
-      {
-        id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。',
-        reqTypes: ['筋力'], reqStats: { strength: 8 },
-        failLogs: { strength: '腕力が足りず重い泥を引き上げきれなかった。【腕立て/腹筋/スクワット】で筋力を鍛えよう！' },
-        rewardGold: 10, rewardTitle: '奉仕の掃除人'
-      },
-      {
-        id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。',
-        reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 },
-        failLogs: { agility: '走るスピードが遅く見失った。【ランニング/ウォーキング/縄跳び】で俊敏を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【ストレッチ/ヨガ/開脚】で柔軟を鍛えよう！' },
-        rewardGold: 10, rewardTitle: '迷い猫の救い手'
-      },
-      {
-        id: 'f4', rank: 'F', name: 'ギルド書庫の羊皮紙整理', desc: '乱雑に積まれた古い文献を読み解き仕分ける。',
-        reqTypes: ['知力'], reqStats: { intelligence: 8 },
-        failLogs: { intelligence: '古代文字が読めず整理が進まなかった。【読書/勉強/言語学習】で知力を鍛えよう！' },
-        rewardGold: 9, rewardTitle: '書庫の見習い手'
-      },
+    function getInnInfo(tier) {
+      if (tier === '上級職') {
+        return { name: '高級宿屋・貴賓館', costPerDay: 30, desc: '一流冒険者にふさわしい贅を尽くした部屋と栄養食' };
+      } else if (tier === '基本職') {
+        return { name: '街の普通の宿屋', costPerDay: 10, desc: '一人前冒険者が集う温かいスープと個室ベッド' };
+      } else {
+        return { name: '古びた安宿', costPerDay: 3, desc: '見習い向けの質素な相部屋と乾パン' };
+      }
+    }
+
+    // 全依頼リスト（継続日数による信用条件 reqStreak を付与）
+    const ALL_GUILD_QUESTS = [
+      // Fランク（常設・日銭稼ぎ）
+      { id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。', reqStreak: 0, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 }, failLogs: { intelligence: '毒草と見分けがつかなかった。【知力】を鍛えよう！', flexibility: '足腰が硬く滑落した。【柔軟】を鍛えよう！' }, rewardGold: 8, rewardTitle: '草原の採取者' },
+      { id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。', reqStreak: 0, reqTypes: ['筋力'], reqStats: { strength: 8 }, failLogs: { strength: '腕力が足りず泥を引き上げきれなかった。【筋力】を鍛えよう！' }, rewardGold: 10, rewardTitle: '奉仕の掃除人' },
+      { id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。', reqStreak: 0, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 }, failLogs: { agility: '走るスピードが遅く見失った。【俊敏】を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 10, rewardTitle: '迷い猫の救い手' },
+      { id: 'f4', rank: 'F', name: 'ギルド書庫の羊皮紙整理', desc: '乱雑に積まれた古い文献を読み解き仕分ける。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 8 }, failLogs: { intelligence: '古代文字が読めず整理が進まなかった。【知力】を鍛えよう！' }, rewardGold: 9, rewardTitle: '書庫の見習い手' },
 
       // Eランク
-      {
-        id: 'e1', rank: 'E', name: 'ジャイアントラット駆除', desc: '食料庫を荒らす巨大ネズミの群れを仕留める。',
-        reqTypes: ['俊敏'], reqStats: { agility: 15 },
-        failLogs: { agility: '踏み込みが遅い！俊敏な動きに翻弄された。【ランニング/ウォーキング/縄跳び】で俊敏を鍛えよう！' },
-        rewardGold: 20, rewardTitle: '害獣ハンター'
-      },
-      {
-        id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。',
-        reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 },
-        failLogs: { strength: 'パワー負け！突進に弾き飛ばされた。【腕立て/腹筋/スクワット】で筋力を鍛えよう！', flexibility: '衝撃を体幹で受け流せなかった。【ストレッチ/ヨガ/開脚】で柔軟を鍛えよう！' },
-        rewardGold: 25, rewardTitle: '畑の守護者'
-      },
-      {
-        id: 'e3', rank: 'E', name: '初級魔法スクロールの解読', desc: '魔力暴走を起こした巻物の呪文式を冷静に分析する。',
-        reqTypes: ['知力'], reqStats: { intelligence: 18 },
-        failLogs: { intelligence: '呪文式の解読が追いつかず暴走した！【読書/勉強/言語学習】で知力を鍛えよう！' },
-        rewardGold: 24, rewardTitle: '魔導の書生'
-      },
+      { id: 'e1', rank: 'E', name: 'ジャイアントラット駆除', desc: '食料庫を荒らす巨大ネズミの群れを仕留める。', reqStreak: 0, reqTypes: ['俊敏'], reqStats: { agility: 15 }, failLogs: { agility: '踏み込みが遅い！翻弄された。【俊敏】を鍛えよう！' }, rewardGold: 20, rewardTitle: '害獣ハンター' },
+      { id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。', reqStreak: 0, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 }, failLogs: { strength: 'パワー負け！弾き飛ばされた。【筋力】を鍛えよう！', flexibility: '衝撃を体幹で受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 25, rewardTitle: '畑の守護者' },
+      { id: 'e3', rank: 'E', name: '初級魔法スクロールの解読', desc: '魔力暴走を起こした巻物の呪文式を冷静に分析する。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 18 }, failLogs: { intelligence: '呪文式の解読が追いつかず暴走した！【知力】を鍛えよう！' }, rewardGold: 24, rewardTitle: '魔導の書生' },
 
       // Dランク
-      {
-        id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。',
-        reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 },
-        failLogs: { strength: '打ち込みが浅く倒しきれなかった。【腕立て/スクワット】で筋力を鍛えよう！', agility: '機敏なステップについていけなかった。【ランニング/縄跳び】で俊敏を鍛えよう！' },
-        rewardGold: 60, rewardTitle: '斥候スレイヤー'
-      },
-      {
-        id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。',
-        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 },
-        failLogs: { intelligence: '除霊呪文の構成にミスがあった！【読書/勉強/言語学習】で知力を鍛えよう！', flexibility: '怪異の衝撃波をしなやかに受け流せなかった。【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
-        rewardGold: 65, rewardTitle: '鎮魂の術士'
-      },
-      {
-        id: 'd3', rank: 'D', name: '盗賊団の暗号通信解読', desc: '街道を脅かす盗賊の密書を解析し奇襲を防ぐ。',
-        reqTypes: ['知力'], reqStats: { intelligence: 35 },
-        failLogs: { intelligence: '暗号の法則を見抜けなかった！【読書/勉強/言語学習】で知力を鍛えよう！' },
-        rewardGold: 70, rewardTitle: '見抜く眼'
-      },
+      { id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。', reqStreak: 3, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 }, failLogs: { strength: '打ち込みが浅く倒しきれなかった。【筋力】を鍛えよう！', agility: 'ステップについていけなかった。【俊敏】を鍛えよう！' }, rewardGold: 60, rewardTitle: '斥候スレイヤー' },
+      { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！', flexibility: '怪異の衝撃波を受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
+      { id: 'd3', rank: 'D', name: '盗賊団の暗号通信解読', desc: '街道を脅かす盗賊の密書を解析し奇襲を防ぐ。', reqStreak: 3, reqTypes: ['知力'], reqStats: { intelligence: 35 }, failLogs: { intelligence: '暗号の法則を見抜けなかった！【知力】を鍛えよう！' }, rewardGold: 70, rewardTitle: '見抜く眼' },
 
       // Cランク
-      {
-        id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。',
-        reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 },
-        failLogs: { strength: '重い棍棒に力負けし弾かれた！【腕立て/スクワット】で筋力を鍛えよう！', flexibility: '強烈な打撃を受け止めきれなかった！【ストレッチ/ヨガ】で柔軟を鍛えよう！' },
-        rewardGold: 150, rewardTitle: '豪傑の武芸者'
-      },
-      {
-        id: 'c2', rank: 'C', name: '幻影の魔術師の結界破り', desc: '迷いの森に展開された偽りの幻術結界の核を看破する。',
-        reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 60, agility: 50 },
-        failLogs: { intelligence: '幻術のカラクリを見抜けず道に迷った！【読書/勉強】で知力を鍛えよう！', agility: '結界の歪みへ飛び込む瞬発力が足りなかった。【ランニング/縄跳び】で俊敏を鍛えよう！' },
-        rewardGold: 160, rewardTitle: '幻影を暴く者'
-      },
-      {
-        id: 'c3', rank: 'C', name: '古代錬金ゴーレムの暴走停止', desc: '暴走する泥人形の魔導回路を解析し弱点を突く。',
-        reqTypes: ['知力', '筋力'], reqStats: { intelligence: 55, strength: 50 },
-        failLogs: { intelligence: '魔力回路の急所が見抜けなかった！【読書/勉強】で知力を鍛えよう！', strength: '弱点への一撃を打ち込むパワーが足りない！【腕立て/スクワット】で筋力を鍛えよう！' },
-        rewardGold: 165, rewardTitle: '錬金の解体士'
-      },
+      { id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。', reqStreak: 5, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 }, failLogs: { strength: '重い棍棒に力負けし弾かれた！【筋力】を鍛えよう！', flexibility: '打撃を受け止めきれなかった！【柔軟】を鍛えよう！' }, rewardGold: 150, rewardTitle: '豪傑の武芸者' },
+      { id: 'c2', rank: 'C', name: '幻影の魔術師の結界破り', desc: '迷いの森に展開された偽りの幻術結界の核を看破する。', reqStreak: 5, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 60, agility: 50 }, failLogs: { intelligence: '幻術を見抜けず道に迷った！【知力】を鍛えよう！', agility: '歪みへ飛び込む瞬発力が足りなかった。【俊敏】を鍛えよう！' }, rewardGold: 160, rewardTitle: '幻影を暴く者' },
+      { id: 'c3', rank: 'C', name: '古代錬金ゴーレムの暴走停止', desc: '暴走する泥人形の魔導回路を解析し弱点を突く。', reqStreak: 5, reqTypes: ['知力', '筋力'], reqStats: { intelligence: 55, strength: 50 }, failLogs: { intelligence: '魔力回路の急所が見抜けなかった！【知力】を鍛えよう！', strength: '打ち込むパワーが足りない！【筋力】を鍛えよう！' }, rewardGold: 165, rewardTitle: '錬金の解体士' },
 
-      // Bランク
-      {
-        id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '単体で砦を半壊させる巨大牛頭魔獣との決闘。',
-        reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 },
-        failLogs: { strength: '破壊力が桁違いだ！押し切られた。【腕立て】で筋力を極限まで高めよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【ストレッチ】で柔軟を極めよう！' },
-        rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー'
-      },
-      {
-        id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王との知恵比べ。',
-        reqTypes: ['知力'], reqStats: { intelligence: 95 },
-        failLogs: { intelligence: '術式の展開速度で圧倒された！【読書/勉強】で知力を極限まで高めよう！' },
-        rewardGold: 380, rewardTitle: '深淵の解読者'
-      },
-      {
-        id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する超難解な古代遺跡の大扉を開錠する。',
-        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 },
-        failLogs: { intelligence: '星盤の方程式が読み解けない！【読書/勉強/言語学習】で知力を鍛えよう！', flexibility: '狭隘な仕掛けの奥へ身体を滑り込ませられなかった。【ストレッチ/開脚】で柔軟を極めよう！' },
-        rewardGold: 360, rewardTitle: '星辰の解読士'
-      },
-      {
-        id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '複数属性のブレスを撃ち分ける合成魔獣を頭脳と身軽さで翻弄する。',
-        reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 85, agility: 85 },
-        failLogs: { intelligence: 'ブレスの予備動作の法則を見失った！【読書/勉強】で知力を鍛えよう！', agility: '炎と毒の同時射撃をかわせなかった！【ランニング/縄跳び】で俊敏を鍛えよう！' },
-        rewardGold: 370, rewardTitle: '多頭獣狩り'
-      },
+      // Bランク（信用：鍛錬継続7日以上）
+      { id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '砦を半壊させる巨大牛頭魔獣との決闘。', reqStreak: 7, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 }, failLogs: { strength: '破壊力が桁違いだ！押し切られた。【筋力】を鍛えよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【柔軟】を鍛えよう！' }, rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー' },
+      { id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王との知恵比べ。', reqStreak: 7, reqTypes: ['知力'], reqStats: { intelligence: 95 }, failLogs: { intelligence: '術式の展開速度で圧倒された！【知力】を極限まで高めよう！' }, rewardGold: 380, rewardTitle: '深淵の解読者' },
+      { id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する古代遺跡の大扉を開錠する。', reqStreak: 7, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 }, failLogs: { intelligence: '星盤の方程式が読み解けない！【知力】を鍛えよう！', flexibility: '狭隘な仕掛けの奥へ滑り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 360, rewardTitle: '星辰の解読士' },
+      { id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '複数属性のブレスを撃ち分ける合成魔獣を翻弄する。', reqStreak: 7, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 85, agility: 85 }, failLogs: { intelligence: 'ブレスの予備動作を見失った！【知力】を鍛えよう！', agility: '同時射撃をかわせなかった！【俊敏】を鍛えよう！' }, rewardGold: 370, rewardTitle: '多頭獣狩り' },
 
-      // Aランク
-      {
-        id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '超高速で滑空するワイバーンの急所を風を読んで射抜く。',
-        reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 },
-        failLogs: { agility: '照準が追いつかない！【ランニング/縄跳び】で俊敏を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【読書/勉強】で知力を研ぎ澄まそう！' },
-        rewardGold: 700, rewardTitle: '竜殺しの鷹目'
-      },
-      {
-        id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲と高位魔法障壁を同時に纏う古代兵器。',
-        reqTypes: ['筋力', '知力'], reqStats: { strength: 130, intelligence: 130 },
-        failLogs: { strength: '装甲が硬すぎる！刃が弾き返された。【腕立て/スクワット】で筋力を極限まで鍛えよう！', intelligence: '魔力障壁の解除コードが解読できない！【読書/勉強】で知力を極限まで高めよう！' },
-        rewardGold: 750, rewardTitle: '古代の解縛者'
-      },
-      {
-        id: 'a3', rank: 'A', name: '禁忌の降霊儀式・絶対結界遮断', desc: '都市一つを壊滅させる邪神降霊陣の詠唱を逆算し無効化する。',
-        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 145, flexibility: 125 },
-        failLogs: { intelligence: '禁忌の術式反転についていけない！【読書/勉強】で知の極致を目指そう！', flexibility: '魔力逆流の激震を受け流せず気絶した！【ストレッチ/ヨガ】で柔軟を極めよう！' },
-        rewardGold: 780, rewardTitle: '天理の大賢者'
-      },
-      {
-        id: 'a4', rank: 'A', name: '魔界大公アスタロスの幻影討伐', desc: '空間を歪め思考を狂わせる上位悪魔の精神攻撃を打ち破る。',
-        reqTypes: ['知力', '筋力', '俊敏'], reqStats: { intelligence: 135, strength: 125, agility: 125 },
-        failLogs: { intelligence: '悪魔の幻惑に思考を奪われた！【読書/勉強】で精神と知力を研ぎ澄まそう！', strength: '実体化した悪魔の爪を受け止めきれない！【筋トレ】で筋力を鍛えよう！', agility: '空間転移のスピードを捉えきれない！【有酸素】で俊敏を鍛えよう！' },
-        rewardGold: 820, rewardTitle: '虚空の調伏師'
-      },
+      // Aランク（信用：鍛錬継続14日以上）
+      { id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '滑空するワイバーンの急所を風を読んで射抜く。', reqStreak: 14, reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 }, failLogs: { agility: '照準が追いつかない！【俊敏】を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【知力】を研ぎ澄まそう！' }, rewardGold: 700, rewardTitle: '竜殺しの鷹目' },
+      { id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲と高位障壁を纏う古代兵器。', reqStreak: 14, reqTypes: ['筋力', '知力'], reqStats: { strength: 130, intelligence: 130 }, failLogs: { strength: '装甲が硬すぎる！刃が弾かれた。【筋力】を鍛えよう！', intelligence: '障壁解除コードが解読できない！【知力】を極限まで高めよう！' }, rewardGold: 750, rewardTitle: '古代の解縛者' },
+      { id: 'a3', rank: 'A', name: '禁忌の降霊儀式・絶対結界遮断', desc: '都市壊滅を狙う邪神降霊陣の詠唱を逆算し遮断する。', reqStreak: 14, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 145, flexibility: 125 }, failLogs: { intelligence: '術式反転についていけない！【知力】を極限まで高めよう！', flexibility: '魔力逆流を受け流せず気絶した！【柔軟】を鍛えよう！' }, rewardGold: 780, rewardTitle: '天理の大賢者' },
 
-      // S / EXランク
-      {
-        id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災。人類の未来を守る決戦。',
-        reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 },
-        failLogs: {
-          strength: '巨体を崩すパワーが足りない！【腕立て/スクワット】で筋力を極めよう！',
-          agility: 'ブレスを回避するスピードが足りない！【ランニング/縄跳び】で俊敏を極めよう！',
-          flexibility: '衝撃波をいなしきれない！【ストレッチ/ヨガ】で柔軟を極めよう！',
-          intelligence: '絶対結界の真理を見破れない！【勉強/読書】で森羅万象の知力を極めよう！'
-        },
-        rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者'
-      },
-      {
-        id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の創世から終末までの全真理を脳内に取り込み調和させる。',
-        reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 },
-        failLogs: {
-          intelligence: '世界の膨大な知識量に耐えきれず意識が混濁した！【読書/勉強】で究極の知力を極めよう！',
-          flexibility: '神気の奔流に魂と肉体が耐えきれなかった！【ストレッチ/ヨガ】でしなやかな心身を極めよう！'
-        },
-        rewardGold: 3000, rewardTitle: '神域の全知者'
-      }
+      // Sランク（信用：鍛錬継続30日以上）
+      { id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。', reqStreak: 30, reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 }, failLogs: { strength: 'パワーが足りない！【筋力】を極めよう！', agility: 'ブレスを回避できない！【俊敏】を極めよう！', flexibility: '衝撃波をいなせない！【柔軟】を極めよう！', intelligence: '結界の真理を見破れない！【知力】を極めよう！' }, rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者' },
+      { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' }
     ];
+
+    // 日付シードをもとに「本日の公開依頼」を日替わり抽出する関数
+    function getDailyAvailableQuests(dayTimestamp) {
+      const date = new Date(dayTimestamp);
+      const dayNum = Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
+      
+      return ALL_GUILD_QUESTS.filter(q => {
+        if (q.rank === 'F') return true; // Fランクは毎日いつでも受注可能
+        // Eランク以上は日付の擬似ハッシュで数日おき・ランダムに掲示板へ登場
+        const hash = (dayNum * 17 + q.id.charCodeAt(0) * 13 + q.id.charCodeAt(1) * 7) % 100;
+        return hash < 55; // 約55%の確率でその日に掲示板へ出現
+      });
+    }
 
     function App() {
       const [player, setPlayer] = useState(() => {
@@ -348,14 +240,18 @@
       const [selectedRankTab, setSelectedRankTab] = useState('F');
       const [questResultModal, setQuestResultModal] = useState(null);
       const [innBillNotice, setInnBillNotice] = useState(null);
-      const [alreadyClearedNotice, setAlreadyClearedNotice] = useState(false);
+      const [blockedNotice, setBlockedNotice] = useState(null); // クリア済 or 信用不足などの警告
 
       const [timerSeconds, setTimerSeconds] = useState(0);
       const [isTimerRunning, setIsTimerRunning] = useState(false);
       const timerIntervalRef = useRef(null);
       const fileInputRef = useRef(null);
 
-      // 日付変更チェック：生活費引き落とし ＆ 減衰 ＆ 本日クリア状況リセット
+      const overall = calculateOverallRank(player.stats);
+      const currentJob = determineJob(player.stats);
+      const inn = getInnInfo(currentJob.tier);
+
+      // 日付変更チェック（生活費引き落とし & 減衰 & クリア状況リセット & 継続日数更新）
       useEffect(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -367,7 +263,7 @@
           const diffDays = Math.floor((todayTime - lastDate.getTime()) / (1000 * 60 * 60 * 24));
 
           if (diffDays >= 1) {
-            const cost = diffDays * 3;
+            const cost = diffDays * inn.costPerDay;
             const newGold = player.gold - cost;
             const camping = newGold < 0;
 
@@ -383,19 +279,20 @@
               }
             });
 
+            // 1日サボると継続日数リセット、毎日起動していれば加算
             const newStreak = diffDays === 1 ? (player.streakCount || 1) + 1 : 1;
 
             setPlayer(prev => ({
               ...prev,
               gold: newGold,
               stats: newStats,
+              streakCount: newStreak,
               lastActiveDate: todayTime,
               dailyClearedQuests: [],
-              streakCount: newStreak,
               isCamping: camping
             }));
 
-            setInnBillNotice({ cost, days: diffDays, remainingGold: newGold, isCamping: camping });
+            setInnBillNotice({ innName: inn.name, cost, days: diffDays, remainingGold: newGold, isCamping: camping });
           }
         } else {
           setPlayer(prev => ({ ...prev, lastActiveDate: todayTime }));
@@ -403,14 +300,17 @@
       }, []);
 
       useEffect(() => {
-        localStorage.setItem('rpg_fitness_player_guild_v19', JSON.stringify(player));
+        try {
+          localStorage.setItem('rpg_fitness_player_guild_v19', JSON.stringify(player));
+        } catch (e) {
+          console.error("Storage error:", e);
+        }
       }, [player]);
 
       useEffect(() => {
         if (window.lucide) window.lucide.createIcons();
-      }, [activeTab, selectedPreset, isStatusOpen, selectedRankTab, questResultModal, innBillNotice, alreadyClearedNotice, player]);
+      }, [activeTab, selectedPreset, isStatusOpen, selectedRankTab, questResultModal, innBillNotice, blockedNotice, player]);
 
-      // タイマー管理
       useEffect(() => {
         if (isTimerRunning) {
           timerIntervalRef.current = setInterval(() => setTimerSeconds(p => p + 1), 1000);
@@ -426,9 +326,6 @@
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
       };
 
-      const overall = calculateOverallRank(player.stats);
-      const currentJob = determineJob(player.stats);
-
       const cycleThemeColor = () => {
         const colors = ['cyan', 'purple', 'pink'];
         const nextIdx = (colors.indexOf(player.themeColor || 'cyan') + 1) % colors.length;
@@ -438,9 +335,37 @@
       const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
         const reader = new FileReader();
         reader.onload = (event) => {
-          setPlayer(prev => ({ ...prev, customAvatar: event.target.result }));
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_SIZE = 300;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_SIZE) {
+                height = Math.round((height * MAX_SIZE) / width);
+                width = MAX_SIZE;
+              }
+            } else {
+              if (height > MAX_SIZE) {
+                width = Math.round((width * MAX_SIZE) / height);
+                height = MAX_SIZE;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            setPlayer(prev => ({ ...prev, customAvatar: compressedDataUrl }));
+          };
+          img.src = event.target.result;
         };
         reader.readAsDataURL(file);
       };
@@ -467,10 +392,20 @@
         if (window.confetti) window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
       };
 
+      // 依頼挑戦処理（達成済判定 & ギルド信用度・継続日数判定）
       const handleAttemptQuest = (quest) => {
         const clearedList = player.dailyClearedQuests || [];
         if (clearedList.includes(quest.id)) {
-          setAlreadyClearedNotice(true);
+          setBlockedNotice({ title: 'ミッション達成済み', text: 'こちらのミッションは本日達成済みです。明日になると再び受注できます！' });
+          return;
+        }
+
+        const curStreak = player.streakCount || 1;
+        if (quest.reqStreak && curStreak < quest.reqStreak) {
+          setBlockedNotice({
+            title: '冒険者ギルドの信用不足',
+            text: `この高位依頼を受注するには、継続鍛錬日数があと【${quest.reqStreak - curStreak}日】不足しています（必要継続: ${quest.reqStreak}日 / 現在: ${curStreak}日）。日々の鍛錬を継続してギルドの信用を高めましょう！`
+          });
           return;
         }
 
@@ -526,43 +461,46 @@
       const themeBtn = theme === 'cyan' ? 'bg-cyan-500 text-slate-950' : theme === 'purple' ? 'bg-purple-600 text-white' : 'bg-pink-500 text-white';
       const themeShadow = theme === 'cyan' ? 'shadow-neon-cyan' : theme === 'purple' ? 'shadow-neon-purple' : 'shadow-neon-pink';
 
-      const filteredQuests = GUILD_QUESTS.filter(q => q.rank === selectedRankTab);
+      // 本日の公開依頼一覧（日替わりフィルター）
+      const todayQuests = getDailyAvailableQuests(player.lastActiveDate || Date.now());
+      const filteredQuests = todayQuests.filter(q => q.rank === selectedRankTab);
       const dailyCleared = player.dailyClearedQuests || [];
 
       return (
-        <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-24 bg-[#090c16] border-x border-slate-800 shadow-2xl">
+        <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-36 bg-[#090c16] border-x border-slate-800 shadow-2xl">
           
           <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
 
-          {/* ヘッダー：ステータス詳細を省き、所持金とジョブ名のみを表示 */}
+          {/* ヘッダー */}
           <header className="p-3 border-b border-slate-800 bg-[#0e1222]/95 backdrop-blur sticky top-0 z-30 flex justify-between items-center">
             <div className="flex items-center space-x-2.5">
               <div 
-                onClick={() => setIsStatusOpen(true)} 
-                title="ステータスを開く"
+                onClick={() => fileInputRef.current.click()} 
+                title="タップして好きな画像に変更"
                 className={`w-11 h-11 rounded-2xl border flex items-center justify-center cursor-pointer overflow-hidden p-0.5 bg-slate-900 ${themeBorder} ${themeShadow} relative group`}
               >
                 {player.customAvatar ? (
                   <img src={player.customAvatar} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
                 ) : (
                   <div className="text-center">
-                    <i data-lucide="user" className="w-5 h-5 text-slate-400 group-hover:text-white"></i>
+                    <i data-lucide="image-plus" className="w-5 h-5 text-slate-400 group-hover:text-white"></i>
                   </div>
                 )}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[8px] text-white font-bold transition">
+                  変更
+                </div>
               </div>
 
               <div>
                 <div className="flex items-center space-x-2">
-                  <span className={`text-xs font-bold font-scifi ${player.gold < 0 ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
+                  <span className="text-[10px] text-slate-400 font-bold">総合Rank</span>
+                  <span className={`font-scifi text-base font-black ${themeText}`}>{overall.rank}</span>
+                  <span className={`text-xs font-bold font-scifi ml-1.5 ${player.gold < 0 ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
                     🪙 {player.gold} G
                   </span>
-                  <span className="text-[10px] text-slate-400">|</span>
-                  <span className="text-xs text-amber-400 font-bold truncate max-w-[140px]">
-                    【{currentJob.name}】
-                  </span>
                 </div>
-                <div className="text-[10px] text-slate-400">
-                  {player.isCamping ? '⛺ 野宿生活' : '🏠 宿屋滞在中'}
+                <div className="text-[10px] text-slate-300 font-bold truncate max-w-[130px]">
+                  <span className="text-amber-400">【{currentJob.name}】</span>
                 </div>
               </div>
             </div>
@@ -576,14 +514,58 @@
             </button>
           </header>
 
+          {/* 野宿バナー */}
+          {player.isCamping && (
+            <div className="mx-3 mt-2 p-2 rounded-xl bg-red-950/90 border border-red-500/80 text-red-200 text-xs">
+              <div className="font-bold text-[11px] text-red-300">⚠️【野宿生活】能力上昇値が半減中！</div>
+              <div className="text-[9px] text-slate-300">所持金が尽き、宿を追い出されました。依頼をこなして宿代を稼ぎましょう！</div>
+            </div>
+          )}
+
           {/* メイン画面 */}
           <main className="p-3.5 flex-1 space-y-3">
+            
+            {/* ステータス概要 */}
+            <div className={`rounded-2xl border bg-gradient-to-b from-[#141829] to-[#0d101e] p-3 shadow-lg ${themeBorder} space-y-2`}>
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-amber-300 font-bold bg-black/40 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                  🔥 鍛錬継続 {player.streakCount || 1} 日目 (信用度)
+                </span>
+                <div className="flex items-center space-x-1">
+                  <span className="text-slate-400 text-xs font-bold">総合Rank</span>
+                  <span className={`font-scifi font-black text-xl ${themeText}`}>{overall.rank}</span>
+                </div>
+              </div>
 
-            {/* ① 鍛錬（トレーニング）タブ：入力に集中するシンプルな画面 */}
+              <div className="grid grid-cols-4 gap-1.5 pt-1 text-center font-mono">
+                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-red-900/40">
+                  <div className="text-[9px] text-red-400 font-bold">筋力</div>
+                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.strength}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.strength)}</div>
+                </div>
+                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-cyan-900/40">
+                  <div className="text-[9px] text-cyan-400 font-bold">俊敏</div>
+                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.agility}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.agility)}</div>
+                </div>
+                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-emerald-900/40">
+                  <div className="text-[9px] text-emerald-400 font-bold">柔軟</div>
+                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.flexibility}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.flexibility)}</div>
+                </div>
+                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-purple-900/40">
+                  <div className="text-[9px] text-purple-400 font-bold">知力</div>
+                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.intelligence}</div>
+                  <div className="text-[9px] text-slate-400">Rank {getStatRank(player.stats.intelligence)}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* ① 鍛錬タブ */}
             {activeTab === 'train' && (
               <div className="space-y-3">
                 {/* クエストタイマー */}
-                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex items-center justify-between shadow-lg">
+                <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex items-center justify-between shadow-lg">
                   <div>
                     <div className="text-[10px] text-slate-400 font-bold">QUEST TIMER</div>
                     <div className="font-scifi font-black text-xl text-white tracking-widest">{formatTimer(timerSeconds)}</div>
@@ -609,11 +591,11 @@
                 </div>
 
                 {/* 記録入力欄 */}
-                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 space-y-2.5 shadow-md">
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-200 font-bold text-sm">{selectedPreset.name} ({selectedPreset.unit})</span>
-                    <span className="text-slate-400 font-mono text-xs">
-                      獲得対象: <strong className={themeText}>{selectedPreset.statName}</strong>
+                    <span className="text-cyan-400 font-mono text-xs">
+                      上昇見込: <strong className="text-white text-base">+{Math.max(1, Math.floor(inputValue / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1))}</strong> ({selectedPreset.statName})
                     </span>
                   </div>
                   <div className="flex space-x-1.5">
@@ -631,14 +613,14 @@
                     />
                     <button
                       onClick={handleRecord}
-                      className={`flex-1 font-black py-3 rounded-xl text-xs font-bold tracking-wider active:scale-95 transition ${themeBtn} ${themeShadow}`}
+                      className={`flex-1 font-black py-3 rounded-xl text-xs font-scifi active:scale-95 transition ${themeBtn} ${themeShadow}`}
                     >
-                      鍛錬完了
+                      TRAIN COMPLETED
                     </button>
                   </div>
                 </div>
 
-                {/* 鍛錬メニュー選択 */}
+                {/* 鍛錬メニュー選択（+2(20回) 形式で表記） */}
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択</div>
                   <div className="grid grid-cols-3 gap-2">
@@ -657,7 +639,9 @@
                           <span className="text-xs font-bold truncate text-white">{p.name}</span>
                           <div className="mt-1.5 flex justify-between items-center text-[10px]">
                             <span className="text-slate-400">{p.statName}</span>
-                            <span className={`font-mono font-bold ${themeText}`}>+{p.gain}</span>
+                            <span className={`font-mono font-bold ${themeText}`}>
+                              +{p.gain} ({p.stepVal}{p.unit})
+                            </span>
                           </div>
                         </button>
                       );
@@ -667,13 +651,19 @@
               </div>
             )}
 
-            {/* ② 冒険者ギルド（依頼）タブ */}
+            {/* ② 冒険者ギルドタブ */}
             {activeTab === 'guild' && (
               <div className="space-y-3">
                 <div className="bg-slate-900/90 border border-amber-500/40 rounded-2xl p-3 space-y-2.5 shadow-xl">
                   <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-                    <span className="font-bold text-xs text-slate-100 tracking-wider">📜 冒険者ギルド 依頼ボード</span>
-                    <span className="text-[10px] text-slate-400">格付: <strong className="text-amber-300 font-scifi font-bold">Rank {overall.rank}</strong></span>
+                    <div>
+                      <span className="font-bold text-xs text-slate-100 tracking-wider">📜 本日のギルド掲示板</span>
+                      <span className="text-[9px] text-amber-300 ml-1.5 bg-amber-950/80 px-1 rounded border border-amber-500/30">日替わり公開中</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 flex items-center space-x-1">
+                      <span>適正:</span>
+                      <strong className="text-amber-300 font-scifi font-bold text-sm">Rank {overall.rank}</strong>
+                    </div>
                   </div>
 
                   {/* ランク切り替えタブ */}
@@ -692,42 +682,61 @@
                   </div>
 
                   {/* 依頼リスト */}
-                  <div className="space-y-2 max-h-[420px] overflow-y-auto pr-0.5">
-                    {filteredQuests.map(q => {
-                      const isClear = dailyCleared.includes(q.id);
-                      return (
-                        <div key={q.id} className="p-3 rounded-xl border border-slate-800 bg-slate-950/70 space-y-2">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="font-bold text-xs text-white flex items-center space-x-1.5">
-                                <span>{q.name}</span>
-                                {isClear && (
-                                  <span className="text-[9px] font-scifi font-black text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-400 tracking-wider">
-                                    CLEAR
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-[11px] text-slate-400 mt-0.5">{q.desc}</div>
-                            </div>
-                          </div>
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5">
+                    {filteredQuests.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-slate-500">
+                        本日このランクの依頼は掲示されていません。<br/>
+                        明日の掲示板更新をお待ちください。
+                      </div>
+                    ) : (
+                      filteredQuests.map(q => {
+                        const isClear = dailyCleared.includes(q.id);
+                        const curStreak = player.streakCount || 1;
+                        const isLockedByStreak = q.reqStreak > 0 && curStreak < q.reqStreak;
 
-                          <div className="flex justify-between items-center pt-1.5 border-t border-slate-800/80 text-[11px]">
-                            <div className="text-slate-400">
-                              要求: <span className="text-cyan-300 font-bold">{q.reqTypes.join(' ＋ ')}</span>
-                              <span className="text-amber-300 font-bold ml-2">🪙 +{q.rewardGold}G</span>
+                        return (
+                          <div key={q.id} className="p-3 rounded-xl border border-slate-800 bg-slate-950/70 space-y-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="font-bold text-xs text-white flex items-center space-x-1.5">
+                                  <span>{q.name}</span>
+                                  {isClear && (
+                                    <span className="text-[9px] font-scifi font-black text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-400 tracking-wider">
+                                      CLEAR
+                                    </span>
+                                  )}
+                                  {isLockedByStreak && (
+                                    <span className="text-[9px] text-red-400 bg-red-950/80 px-1.5 py-0.5 rounded border border-red-500/40">
+                                      信用不足 (継続{q.reqStreak}日必要)
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-slate-400 mt-0.5">{q.desc}</div>
+                              </div>
                             </div>
-                            <button
-                              onClick={() => handleAttemptQuest(q)}
-                              className={`px-3 py-1 rounded-lg font-bold text-xs active:scale-95 transition ${
-                                isClear ? 'bg-slate-800 text-slate-400 border border-slate-700' : themeBtn
-                              }`}
-                            >
-                              {isClear ? '達成済' : '挑戦する'}
-                            </button>
+
+                            <div className="flex justify-between items-center pt-1.5 border-t border-slate-800/80 text-[11px]">
+                              <div className="text-slate-400">
+                                要求: <span className="text-cyan-300 font-bold">{q.reqTypes.join(' ＋ ')}</span>
+                                <span className="text-amber-300 font-bold ml-2">🪙 +{q.rewardGold}G</span>
+                              </div>
+                              <button
+                                onClick={() => handleAttemptQuest(q)}
+                                className={`px-3 py-1 rounded-lg font-bold text-xs active:scale-95 transition ${
+                                  isClear 
+                                    ? 'bg-slate-800 text-slate-400 border border-slate-700' 
+                                    : isLockedByStreak 
+                                    ? 'bg-red-950/50 text-red-300 border border-red-800/60'
+                                    : themeBtn
+                                }`}
+                              >
+                                {isClear ? '達成済' : isLockedByStreak ? '信用不足' : '挑戦する'}
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </div>
@@ -735,50 +744,49 @@
 
           </main>
 
-          {/* 下部ナビゲーション */}
-          <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-2.5 bg-slate-950/95 border-t border-slate-800 backdrop-blur z-30 flex items-center space-x-2">
-            <button
-              onClick={() => setActiveTab('train')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition ${
-                activeTab === 'train' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
-              }`}
-            >
-              <i data-lucide="dumbbell" className="w-4 h-4"></i>
-              <span>鍛錬メニュー</span>
-            </button>
+          {/* 下部固定ナビゲーション */}
+          <div className="fixed bottom-3 left-0 right-0 max-w-md mx-auto px-3.5 z-30">
+            <div className="p-2 rounded-2xl bg-slate-950/95 border border-slate-800 backdrop-blur shadow-2xl flex items-center space-x-2">
+              <button
+                onClick={() => setActiveTab('train')}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition ${
+                  activeTab === 'train' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
+                }`}
+              >
+                <i data-lucide="dumbbell" className="w-4 h-4"></i>
+                <span>鍛錬メニュー</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('guild')}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition ${
-                activeTab === 'guild' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
-              }`}
-            >
-              <i data-lucide="scroll" className="w-4 h-4"></i>
-              <span>冒険者ギルド</span>
-            </button>
+              <button
+                onClick={() => setActiveTab('guild')}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition ${
+                  activeTab === 'guild' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
+                }`}
+              >
+                <i data-lucide="scroll" className="w-4 h-4"></i>
+                <span>冒険者ギルド</span>
+              </button>
 
-            <button
-              onClick={() => setIsStatusOpen(true)}
-              className="px-4 py-2.5 rounded-xl font-scifi font-black text-xs tracking-wider bg-slate-900 border border-slate-700 text-amber-300 hover:text-white"
-            >
-              STATUS
-            </button>
+              <button
+                onClick={() => setIsStatusOpen(true)}
+                className="px-4 py-2.5 rounded-xl font-scifi font-black text-xs tracking-wider bg-slate-900 border border-slate-700 text-amber-300 hover:text-white"
+              >
+                STATUS
+              </button>
+            </div>
           </div>
 
-          {/* 本日達成済み警告モーダル */}
-          {alreadyClearedNotice && (
+          {/* 警告モーダル（達成済 or 信用不足） */}
+          {blockedNotice && (
             <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-6">
               <div className="bg-slate-900 border border-amber-500/50 rounded-2xl p-5 max-w-xs w-full text-center space-y-3">
                 <div className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center mx-auto">
-                  <i data-lucide="check" className="w-6 h-6"></i>
+                  <i data-lucide="alert-triangle" className="w-6 h-6"></i>
                 </div>
-                <h3 className="font-bold text-sm text-white">ミッション達成済み</h3>
-                <p className="text-xs text-slate-300">
-                  こちらのミッションは本日達成済みです。<br/>
-                  明日になると再び受注できるようになります！
-                </p>
+                <h3 className="font-bold text-sm text-white">{blockedNotice.title}</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">{blockedNotice.text}</p>
                 <button 
-                  onClick={() => setAlreadyClearedNotice(false)} 
+                  onClick={() => setBlockedNotice(null)} 
                   className="w-full py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs"
                 >
                   閉じる
@@ -787,22 +795,23 @@
             </div>
           )}
 
-          {/* 生活費引き落としモーダル */}
+          {/* 宿屋支払いモーダル */}
           {innBillNotice && (
             <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6">
               <div className="bg-slate-900 border border-amber-500/50 rounded-2xl p-5 max-w-xs w-full text-center space-y-3">
-                <h3 className="font-bold text-sm text-white">宿屋と酒場での支払い</h3>
-                <div className="text-xs text-slate-300 space-y-1">
+                <h3 className="font-bold text-sm text-white">宿屋と食事の支払い</h3>
+                <div className="text-xs text-slate-300 space-y-1.5">
+                  <div className="text-amber-400 font-bold">【{innBillNotice.innName}】</div>
                   <p>滞在日数: <strong className="text-white font-mono">{innBillNotice.days}</strong> 日分</p>
-                  <p className="text-amber-300 font-bold font-mono">生活費合計: -{innBillNotice.cost} G</p>
+                  <p className="text-amber-300 font-bold font-mono text-sm">宿泊・飲食費: -{innBillNotice.cost} G</p>
                 </div>
                 {innBillNotice.isCamping ? (
                   <div className="p-2 rounded-xl bg-red-950/60 border border-red-500/40 text-[11px] text-red-300">
-                    ⚠️ 所持金が尽きたため【野宿生活】になりました！能力獲得量が半減します。
+                    ⚠️ 所持金が尽きたため【野宿生活】になりました！依頼をこなして宿代を稼ぎましょう！
                   </div>
                 ) : (
                   <div className="text-xs text-emerald-300 font-bold">
-                    温かい食事とベッドで体調を整えました！（残金: {innBillNotice.remainingGold} G）
+                    十分な休息を取りました！（残金: {innBillNotice.remainingGold} G）
                   </div>
                 )}
                 <button onClick={() => setInnBillNotice(null)} className="w-full py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs">
@@ -857,128 +866,63 @@
             </div>
           )}
 
-          {/* ステータス全画面モーダル：生活・鍛錬日数・各ステータス詳細をすべて集約 */}
+          {/* ステータス全画面モーダル */}
           {isStatusOpen && (
-            <div className="fixed inset-0 z-50 bg-black/95 flex flex-col p-4 overflow-y-auto">
-              <div className="flex justify-between items-center border-b border-slate-800 pb-2.5">
-                <span className={`font-scifi text-xs tracking-wider ${themeText}`}>ADVENTURER STATUS</span>
+            <div className="fixed inset-0 z-50 bg-black/95 flex flex-col p-5 overflow-y-auto">
+              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <span className={`font-scifi text-xs ${themeText}`}>STATUS INTERFACE</span>
                 <button onClick={() => setIsStatusOpen(false)} className="text-slate-400 text-lg font-bold">✕</button>
               </div>
 
-              {/* アバター & ジョブ情報 */}
-              <div className="mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center space-y-2 shadow-lg">
+              <div className="mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center space-y-2">
                 <div className="flex justify-center">
                   <div 
                     onClick={() => fileInputRef.current.click()}
-                    title="タップして画像を変更"
-                    className={`w-28 h-28 rounded-2xl border-2 overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer ${themeBorder} ${themeShadow} relative group`}
+                    className={`w-28 h-28 rounded-2xl border-2 overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer ${themeBorder} ${themeShadow}`}
                   >
                     {player.customAvatar ? (
                       <img src={player.customAvatar} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center p-2">
                         <i data-lucide="image-plus" className="w-7 h-7 text-slate-500 mx-auto"></i>
-                        <span className="text-[9px] text-slate-400 mt-1 block">画像を設定</span>
+                        <span className="text-[10px] text-slate-400 mt-1 block">画像を設定</span>
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[9px] text-white font-bold transition">
-                      変更
-                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-0.5">
-                  <div className="text-xs font-bold text-amber-400 bg-amber-950/80 px-3 py-0.5 rounded-full inline-block border border-amber-500/40">
-                    【{currentJob.name}】 ({currentJob.tier})
-                  </div>
-                  <div className="text-[10px] text-slate-400 pt-0.5">{currentJob.desc}</div>
+                <div className="text-xs font-bold text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded-full inline-block border border-amber-500/40">
+                  【{currentJob.name}】 ({currentJob.tier})
                 </div>
-
-                <div className="flex justify-center space-x-3 text-xs font-scifi font-bold pt-1 border-t border-slate-800/80">
-                  <span className={themeText}>総合格付: Rank {overall.rank}</span>
-                  <span className={player.gold < 0 ? 'text-red-400' : 'text-amber-300'}>🪙 所持金: {player.gold} G</span>
+                <div className="text-[11px] text-slate-400">{currentJob.desc}</div>
+                <div className="flex justify-center items-center space-x-3 text-xs font-scifi font-bold pt-1">
+                  <span className="text-slate-400">総合Rank <strong className={`text-base ${themeText}`}>{overall.rank}</strong></span>
+                  <span className={player.gold < 0 ? 'text-red-400' : 'text-amber-300'}>🪙 {player.gold} G</span>
                 </div>
               </div>
 
-              {/* 鍛錬継続 & 住居・コンディション状況 */}
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {/* 継続日数 */}
-                <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center space-x-2">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                    <i data-lucide="flame" className="w-4 h-4"></i>
-                  </div>
-                  <div>
-                    <div className="text-[9px] text-slate-400 font-bold">鍛錬継続記録</div>
-                    <div className="text-sm font-scifi font-black text-white">{player.streakCount || 1} 日目</div>
-                  </div>
-                </div>
-
-                {/* 現在の住居 */}
-                <div className={`bg-slate-900/90 border rounded-xl p-2.5 flex items-center space-x-2 ${
-                  player.isCamping ? 'border-red-500/60' : 'border-slate-800'
-                }`}>
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    player.isCamping ? 'bg-red-500/20 text-red-400' : 'bg-cyan-500/20 text-cyan-400'
-                  }`}>
-                    <i data-lucide={player.isCamping ? "tent" : "home"} className="w-4 h-4"></i>
-                  </div>
-                  <div>
-                    <div className="text-[9px] text-slate-400 font-bold">現在の住居</div>
-                    <div className={`text-xs font-bold ${player.isCamping ? 'text-red-300' : 'text-slate-200'}`}>
-                      {player.isCamping ? '野宿生活' : '宿屋滞在中'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 住居詳細・生活費ペナルティ解説 */}
-              <div className={`mt-2 p-2.5 rounded-xl border text-xs leading-relaxed ${
-                player.isCamping 
-                  ? 'bg-red-950/50 border-red-500/50 text-red-200' 
-                  : 'bg-slate-900/60 border-slate-800 text-slate-300'
-              }`}>
-                {player.isCamping ? (
-                  <div>
-                    <div className="font-bold text-red-300 flex items-center space-x-1">
-                      <i data-lucide="alert-triangle" className="w-3.5 h-3.5"></i>
-                      <span>【野宿生活】鍛錬の獲得能力値が50%低下中！</span>
-                    </div>
-                    <div className="text-[10px] text-slate-300 mt-0.5">
-                      宿屋代が尽きました。依頼を達成して宿代を稼ぎ、温かいベッドに戻りましょう！
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-300">🏠 宿屋滞在（快適な睡眠と食事）</span>
-                    <span className="text-amber-300 font-mono font-bold">-3 G / 日</span>
-                  </div>
-                )}
-              </div>
-
-              {/* 4ステータス詳細（筋力・俊敏・柔軟・知力） */}
+              {/* 能力値バー */}
               <div className="mt-3 space-y-2">
-                <div className="text-[11px] font-bold text-slate-400 px-1">能力値・ランク詳細</div>
                 {[
-                  { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
-                  { key: 'agility', name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400', bar: 'from-cyan-500 to-blue-500' },
-                  { key: 'flexibility', name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400', bar: 'from-emerald-500 to-teal-500' },
-                  { key: 'intelligence', name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400', bar: 'from-purple-500 to-indigo-500' },
+                  { name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
+                  { name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400', bar: 'from-cyan-500 to-blue-500' },
+                  { name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400', bar: 'from-emerald-500 to-teal-500' },
+                  { name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400', bar: 'from-purple-500 to-indigo-500' },
                 ].map(s => {
                   const r = getStatRank(s.val);
-                  const next = getNextRankThreshold(s.val);
-                  const pct = Math.min(100, Math.floor((s.val / next.currentMax) * 100));
+                  const currentCap = s.val < 10 ? 10 : s.val < 25 ? 25 : s.val < 50 ? 50 : s.val < 80 ? 80 : s.val < 120 ? 120 : s.val < 170 ? 170 : 200;
+                  const pct = Math.min(100, Math.floor((s.val / currentCap) * 100));
 
                   return (
-                    <div key={s.key} className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 space-y-1">
+                    <div key={s.name} className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
                       <div className="flex justify-between items-center text-xs">
                         <span className={`font-bold ${s.color}`}>{s.name}</span>
-                        <div className="flex items-center space-x-2 font-mono">
-                          <span className="text-white font-bold">{s.val}</span>
+                        <div className="flex items-center space-x-1.5 font-mono">
+                          <span className="text-white font-bold text-sm">{s.val}</span>
                           <span className="text-amber-300 font-bold font-scifi">[Rank {r}]</span>
-                          <span className="text-[10px] text-slate-500">(次: {next.nextRank})</span>
                         </div>
                       </div>
-                      <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+                      <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
                         <div className={`h-full rounded-full bg-gradient-to-r ${s.bar}`} style={{ width: `${pct}%` }}></div>
                       </div>
                     </div>
@@ -986,7 +930,7 @@
                 })}
               </div>
 
-              <button onClick={() => setIsStatusOpen(false)} className="mt-4 w-full py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-scifi font-bold">
+              <button onClick={() => setIsStatusOpen(false)} className="mt-5 w-full py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-scifi font-bold">
                 CLOSE
               </button>
             </div>
