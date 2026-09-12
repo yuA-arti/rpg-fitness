@@ -60,15 +60,10 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // ギルド受付嬢クレアのドット絵（栗色ボブ・明るい制服）
+    // ギルド受付嬢クレア
     function GuildReceptionistPixel({ size = 52 }) {
       return (
-        <svg 
-          viewBox="0 0 16 16" 
-          width={size} 
-          height={size} 
-          className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40"
-        >
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40">
           <rect x="5" y="1" width="6" height="2" fill="#0284c7" />
           <rect x="7" y="0" width="2" height="1" fill="#f59e0b" />
           <rect x="4" y="3" width="8" height="2" fill="#92400e" />
@@ -91,31 +86,20 @@
       );
     }
 
-    // ギルド監査官ミレイのドット絵（銀髪・メガネ・厳格なダークネイビー制服）
+    // ギルド監査官ミレイ
     function GuildAuditorPixel({ size = 56 }) {
       return (
-        <svg 
-          viewBox="0 0 16 16" 
-          width={size} 
-          height={size} 
-          className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60"
-        >
-          {/* 銀髪・ベレー帽 */}
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60">
           <rect x="5" y="1" width="6" height="2" fill="#1e1b4b" />
           <rect x="4" y="3" width="8" height="2" fill="#cbd5e1" />
           <rect x="3" y="5" width="2" height="5" fill="#cbd5e1" />
           <rect x="11" y="5" width="2" height="5" fill="#cbd5e1" />
-          {/* 肌 */}
           <rect x="5" y="5" width="6" height="5" fill="#fed7aa" />
-          {/* 赤ぶちメガネ */}
           <rect x="5" y="6" width="3" height="2" stroke="#dc2626" strokeWidth="0.6" fill="none" />
           <rect x="8" y="6" width="3" height="2" stroke="#dc2626" strokeWidth="0.6" fill="none" />
-          {/* 瞳（鋭い青） */}
           <rect x="6" y="6" width="1" height="1" fill="#2563eb" />
           <rect x="9" y="6" width="1" height="1" fill="#2563eb" />
-          {/* 真面目な一文字口 */}
           <rect x="7" y="8" width="2" height="1" fill="#991b1b" />
-          {/* 監査官制服（ダークネイビー＆ゴールド章） */}
           <rect x="5" y="10" width="6" height="2" fill="#0f172a" />
           <rect x="7" y="10" width="2" height="1" fill="#e2e8f0" />
           <rect x="7" y="11" width="2" height="1" fill="#eab308" />
@@ -127,20 +111,74 @@
       );
     }
 
+    // ① 古びた安宿の店主（バルガス）
+    function InnOldManPixel({ size = 56 }) {
+      return (
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-800">
+          <rect x="4" y="2" width="8" height="2" fill="#78350f" />
+          <rect x="3" y="4" width="10" height="2" fill="#b45309" />
+          <rect x="4" y="5" width="8" height="6" fill="#fed7aa" />
+          <rect x="5" y="5" width="2" height="1" fill="#451a03" />
+          <rect x="9" y="5" width="2" height="1" fill="#451a03" />
+          <rect x="5" y="6" width="1" height="1" fill="#0f172a" />
+          <rect x="10" y="6" width="1" height="1" fill="#0f172a" />
+          <rect x="5" y="8" width="6" height="3" fill="#78350f" />
+          <rect x="7" y="8" width="2" height="1" fill="#451a03" />
+          <rect x="4" y="11" width="8" height="4" fill="#57534e" />
+          <rect x="6" y="11" width="4" height="4" fill="#d6d3d1" />
+        </svg>
+      );
+    }
+
+    // ② 普通の宿屋の看板娘（エマ）
+    function InnGirlPixel({ size = 56 }) {
+      return (
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-emerald-500/50">
+          <rect x="4" y="1" width="8" height="3" fill="#facc15" />
+          <rect x="3" y="4" width="2" height="4" fill="#facc15" />
+          <rect x="11" y="3" width="3" height="5" fill="#facc15" />
+          <rect x="4" y="2" width="7" height="1" fill="#10b981" />
+          <rect x="5" y="4" width="6" height="6" fill="#fef08a" />
+          <rect x="6" y="5" width="1" height="2" fill="#065f46" />
+          <rect x="9" y="5" width="1" height="2" fill="#065f46" />
+          <rect x="5" y="7" width="1" height="1" fill="#f43f5e" />
+          <rect x="10" y="7" width="1" height="1" fill="#f43f5e" />
+          <rect x="7" y="8" width="2" height="1" fill="#ea580c" />
+          <rect x="5" y="10" width="6" height="5" fill="#059669" />
+          <rect x="6" y="10" width="4" height="4" fill="#ffffff" />
+        </svg>
+      );
+    }
+
+    // ③ 高級宿屋の執事（セバスチャン）
+    function InnButlerPixel({ size = 56 }) {
+      return (
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-purple-500/50">
+          <rect x="5" y="1" width="6" height="3" fill="#e2e8f0" />
+          <rect x="4" y="3" width="2" height="4" fill="#94a3b8" />
+          <rect x="10" y="3" width="2" height="4" fill="#94a3b8" />
+          <rect x="5" y="4" width="6" height="6" fill="#fed7aa" />
+          <rect x="5" y="5" width="2" height="2" stroke="#eab308" strokeWidth="0.6" fill="none" />
+          <rect x="6" y="5" width="1" height="1" fill="#0f172a" />
+          <rect x="9" y="5" width="1" height="1" fill="#0f172a" />
+          <rect x="6" y="8" width="4" height="1" fill="#94a3b8" />
+          <rect x="4" y="10" width="8" height="5" fill="#0f172a" />
+          <rect x="6" y="10" width="4" height="3" fill="#ffffff" />
+          <rect x="7" y="10" width="2" height="2" fill="#b91c1c" />
+        </svg>
+      );
+    }
+
     const PRESETS = [
-      // 筋力 (STR) - 上限300回
       { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300, icon: 'dumbbell' },
       { id: 'situps', name: '腹筋', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300, icon: 'shield' },
       { id: 'squats', name: 'スクワット', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300, icon: 'zap' },
-      // 俊敏 (AGI) - 上限240分
       { id: 'running', name: 'ランニング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, limit: 240, icon: 'flame' },
       { id: 'walking', name: 'ウォーキング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 240, icon: 'activity' },
       { id: 'jump_rope', name: '縄跳び / バーピー', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 10, stepVal: 10, gain: 3, limit: 240, icon: 'wind' },
-      // 柔軟 (FEX) - 上限180分
       { id: 'stretch', name: 'ストレッチ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180, icon: 'heart' },
       { id: 'yoga', name: 'ヨガ / 体幹', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180, icon: 'sparkles' },
       { id: 'splits', name: '開脚 / 股関節柔軟', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180, icon: 'smile' },
-      // 知力 (INT) - 上限360分
       { id: 'reading', name: '読書', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360, icon: 'book-open' },
       { id: 'study', name: '勉強 / 資格学習', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360, icon: 'brain' },
       { id: 'language', name: '言語学習 / 暗記', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 360, icon: 'languages' },
@@ -222,13 +260,38 @@
       }
     }
 
+    // 宿屋ごとの設定（「街の」「貴賓館」を削除）
     function getInnInfo(tier) {
       if (tier === '上級職') {
-        return { name: '高級宿屋・貴賓館', costPerDay: 30, desc: '一流冒険者にふさわしい贅を尽くした部屋と栄養食' };
+        return {
+          id: 'luxury',
+          name: '高級宿屋',
+          keeperName: '執事 セバスチャン',
+          costPerDay: 30,
+          desc: '一流冒険者にふさわしい贅を尽くした部屋と栄養食',
+          getNormalSpeech: (name, days, cost) => `「${name}様、おはようございます。昨夜はよくお休みになれましたでしょうか。滞在費 ${days}日分（${cost} G）を精算いたしました。本日も高貴なるご活躍を。」`,
+          getCampSpeech: (name) => `「……誠に遺憾ながら${name}様、所持金が不足しております。無一文のお客様をお泊めするわけには参りません。悪しからずご退館を。」`
+        };
       } else if (tier === '基本職') {
-        return { name: '街の普通の宿屋', costPerDay: 10, desc: '一人前冒険者が集う温かいスープと個室ベッド' };
+        return {
+          id: 'normal',
+          name: '普通の宿屋',
+          keeperName: '看板娘 エマ',
+          costPerDay: 10,
+          desc: '一人前冒険者が集う温かいスープと個室ベッド',
+          getNormalSpeech: (name, days, cost) => `「${name}さん、おはよう！しっかり疲れは取れた？ 宿泊代とお食事代で ${cost} G（${days}日分）いただきまーす！ 今日も無理せず頑張ってね！」`,
+          getCampSpeech: (name) => `「えっ、${name}さんお金足りないの……！？ ごめんね、うちもお代をもらえないと泊めてあげられないの……。早く依頼をこなして宿代稼いできてね！」`
+        };
       } else {
-        return { name: '古びた安宿', costPerDay: 3, desc: '見習い向けの質素な相部屋と乾パン' };
+        return {
+          id: 'cheap',
+          name: '古びた安宿',
+          keeperName: '安宿の店主 バルガス',
+          costPerDay: 3,
+          desc: '見習い向けの質素な相部屋と乾パン',
+          getNormalSpeech: (name, days, cost) => `「おう、起きたか${name}。宿泊代とメシ代で ${cost} G（${days}日分）もらうぜ。今日もギルドの雑用でしっかり日銭稼いできな！」`,
+          getCampSpeech: (name) => `「おいおい${name}、金が底をついてるじゃねぇか！ 金払えねぇ奴を泊めるお人好しはいねぇよ。悪いが外で野宿して頭冷やしな！」`
+        };
       }
     }
 
@@ -377,7 +440,16 @@
               isCamping: camping
             }));
 
-            setInnBillNotice({ innName: inn.name, cost, days: diffDays, remainingGold: newGold, isCamping: camping });
+            setInnBillNotice({
+              innId: inn.id,
+              innName: inn.name,
+              keeperName: inn.keeperName,
+              cost,
+              days: diffDays,
+              remainingGold: newGold,
+              isCamping: camping,
+              speech: camping ? inn.getCampSpeech(player.name) : inn.getNormalSpeech(player.name, diffDays, cost)
+            });
           }
         } else {
           setPlayer(prev => ({ ...prev, lastActiveDate: todayTime }));
@@ -477,7 +549,6 @@
         window.location.reload();
       };
 
-      // 鍛錬記録（監査官ミレイの魔力ドーピング疑い検知）
       const handleRecord = () => {
         const amount = Number(inputValue);
         if (!amount || amount <= 0) return;
@@ -492,8 +563,7 @@
           return;
         }
 
-        let gained = Math.floor(amount / selectedPreset.stepVal) * selectedPreset.gain;
-        if (gained < 1) gained = selectedPreset.gain;
+        let gained = Math.max(1, Math.round((amount / selectedPreset.stepVal) * selectedPreset.gain));
         if (player.isCamping) gained = Math.max(1, Math.floor(gained * 0.5));
 
         const cat = selectedPreset.category;
@@ -587,6 +657,8 @@
       const todayQuests = getDailyAvailableQuests(player.lastActiveDate || Date.now());
       const filteredQuests = todayQuests.filter(q => q.rank === selectedRankTab);
       const dailyCleared = player.dailyClearedQuests || [];
+
+      const estimatedGain = Math.max(1, Math.round((Number(inputValue || 0) / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1)));
 
       return (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-36 bg-[#090c16] border-x border-slate-800 shadow-2xl">
@@ -725,11 +797,11 @@
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-200 font-bold text-sm">{selectedPreset.name} ({selectedPreset.unit})</span>
                     <span className="text-cyan-400 font-mono text-xs">
-                      上昇見込: <strong className="text-white text-base">+{Math.max(1, Math.floor(inputValue / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1))}</strong> ({selectedPreset.statName})
+                      上昇見込: <strong className="text-white text-base">+{estimatedGain}</strong> ({selectedPreset.statName})
                     </span>
                   </div>
                   <div className="flex space-x-1.5">
-                    {[10, 20, 30, 50].map(num => (
+                    {[5, 10, 20, 30].map(num => (
                       <button key={num} onClick={() => setInputValue(num)} className="flex-1 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300 hover:border-slate-500">
                         {num}
                       </button>
@@ -784,8 +856,6 @@
             {/* ② 冒険者ギルドタブ */}
             {activeTab === 'guild' && (
               <div className="space-y-3">
-                
-                {/* ギルド受付嬢クレア */}
                 <div className="bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-950 border border-amber-500/50 rounded-2xl p-3 flex items-center space-x-3 shadow-xl">
                   <GuildReceptionistPixel size={56} />
                   <div className="space-y-0.5">
@@ -799,7 +869,6 @@
                   </div>
                 </div>
 
-                {/* 掲示板 */}
                 <div className="bg-slate-900/90 border border-amber-500/40 rounded-2xl p-3 space-y-2.5 shadow-xl">
                   <div className="flex justify-between items-center border-b border-slate-800 pb-2">
                     <div>
@@ -812,7 +881,6 @@
                     </div>
                   </div>
 
-                  {/* ランク切り替えタブ */}
                   <div className="flex space-x-1 overflow-x-auto pb-1">
                     {['F', 'E', 'D', 'C', 'B', 'A', 'S'].map(r => (
                       <button
@@ -827,7 +895,6 @@
                     ))}
                   </div>
 
-                  {/* 依頼リスト */}
                   <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5">
                     {filteredQuests.length === 0 ? (
                       <div className="p-6 text-center text-xs text-slate-500">
@@ -943,7 +1010,7 @@
             </div>
           )}
 
-          {/* 受付嬢クレアの案内モーダル（信用不足 or 達成済） */}
+          {/* 受付嬢クレアの案内モーダル */}
           {blockedNotice && (
             <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 animate-fade-in">
               <div className="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-neon-gold text-center">
@@ -973,25 +1040,53 @@
 
           {/* 宿屋支払いモーダル */}
           {innBillNotice && (
-            <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6">
-              <div className="bg-slate-900 border border-amber-500/50 rounded-2xl p-5 max-w-xs w-full text-center space-y-3">
-                <h3 className="font-bold text-sm text-white">宿屋と食事の支払い</h3>
-                <div className="text-xs text-slate-300 space-y-1.5">
-                  <div className="text-amber-400 font-bold">【{innBillNotice.innName}】</div>
-                  <p>滞在日数: <strong className="text-white font-mono">{innBillNotice.days}</strong> 日分</p>
-                  <p className="text-amber-300 font-bold font-mono text-sm">宿泊・飲食費: -{innBillNotice.cost} G</p>
+            <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-5 animate-fade-in">
+              <div className={`bg-slate-900 border-2 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-2xl text-center ${
+                innBillNotice.isCamping ? 'border-red-500/80' : 'border-amber-500/60 shadow-neon-gold'
+              }`}>
+                <div className="flex justify-center">
+                  {innBillNotice.innId === 'cheap' && <InnOldManPixel size={64} />}
+                  {innBillNotice.innId === 'normal' && <InnGirlPixel size={64} />}
+                  {innBillNotice.innId === 'luxury' && <InnButlerPixel size={64} />}
                 </div>
-                {innBillNotice.isCamping ? (
-                  <div className="p-2 rounded-xl bg-red-950/60 border border-red-500/40 text-[11px] text-red-300">
-                    ⚠️ 所持金が尽きたため【野宿生活】になりました！依頼をこなして宿代を稼ぎましょう！
+
+                <div className="space-y-1">
+                  <div className="text-[10px] font-bold text-amber-300 bg-amber-950/80 px-2.5 py-0.5 rounded-full inline-block border border-amber-500/30">
+                    {innBillNotice.innName}
                   </div>
-                ) : (
-                  <div className="text-xs text-emerald-300 font-bold">
-                    十分な休息を取りました！（残金: {innBillNotice.remainingGold} G）
+                  <h3 className="font-bold text-sm text-white">{innBillNotice.keeperName}</h3>
+                </div>
+
+                <div className="bg-slate-950/85 p-3 rounded-2xl border border-slate-800 text-left">
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                    {innBillNotice.speech}
+                  </p>
+                </div>
+
+                <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 text-xs font-mono space-y-1">
+                  <div className="flex justify-between text-slate-400">
+                    <span>滞在期間:</span>
+                    <span className="text-white font-bold">{innBillNotice.days} 日分</span>
                   </div>
-                )}
-                <button onClick={() => setInnBillNotice(null)} className="w-full py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs">
-                  了解
+                  <div className="flex justify-between text-slate-400">
+                    <span>お支払い:</span>
+                    <span className="text-red-400 font-bold">-{innBillNotice.cost} G</span>
+                  </div>
+                  <div className="flex justify-between border-t border-slate-800 pt-1 text-slate-300">
+                    <span>所持金残高:</span>
+                    <span className={`font-bold ${innBillNotice.remainingGold < 0 ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
+                      🪙 {innBillNotice.remainingGold} G
+                    </span>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => setInnBillNotice(null)} 
+                  className={`w-full py-2.5 rounded-xl font-bold text-xs shadow transition active:scale-95 ${
+                    innBillNotice.isCamping ? 'bg-red-600 text-white' : 'bg-amber-500 text-slate-950'
+                  }`}
+                >
+                  {innBillNotice.isCamping ? '外へ出る（野宿）' : '出発する'}
                 </button>
               </div>
             </div>
@@ -1076,7 +1171,6 @@
                   </div>
                 </div>
 
-                {/* 冒険者名 */}
                 <div className="flex items-center justify-center space-x-1.5">
                   <span className="font-scifi font-black text-xl text-white tracking-wide">{player.name}</span>
                   <button 
