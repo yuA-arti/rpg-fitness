@@ -60,7 +60,6 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // ギルド受付嬢クレア
     function GuildReceptionistPixel({ size = 52 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40">
@@ -86,7 +85,6 @@
       );
     }
 
-    // ギルド監査官ミレイ
     function GuildAuditorPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60">
@@ -111,7 +109,6 @@
       );
     }
 
-    // ① 古びた安宿の店主（バルガス）
     function InnOldManPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-800">
@@ -130,7 +127,6 @@
       );
     }
 
-    // ② 普通の宿屋の看板娘（エマ）
     function InnGirlPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-emerald-500/50">
@@ -150,7 +146,6 @@
       );
     }
 
-    // ③ 高級宿屋の執事（セバスチャン）
     function InnButlerPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-purple-500/50">
@@ -260,7 +255,6 @@
       }
     }
 
-    // 宿屋ごとの設定（「街の」「貴賓館」を削除）
     function getInnInfo(tier) {
       if (tier === '上級職') {
         return {
@@ -380,7 +374,8 @@
 
       const [activeTab, setActiveTab] = useState('train');
       const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
-      const [inputValue, setInputValue] = useState(PRESETS[0].defaultVal);
+      // 入力値を空文字許容の文字列型で保持（全消し可能にする）
+      const [inputValue, setInputValue] = useState(String(PRESETS[0].defaultVal));
       const [isStatusOpen, setIsStatusOpen] = useState(false);
       const [isSettingsOpen, setIsSettingsOpen] = useState(false);
       const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
@@ -391,6 +386,12 @@
       const [innBillNotice, setInnBillNotice] = useState(null);
       const [blockedNotice, setBlockedNotice] = useState(null);
       const [cheatWarningNotice, setCheatWarningNotice] = useState(null);
+
+      // チート認証・操作用State
+      const [isCheatAuthOpen, setIsCheatAuthOpen] = useState(false);
+      const [cheatPassword, setCheatPassword] = useState('');
+      const [cheatError, setCheatError] = useState(false);
+      const [isCheatPanelOpen, setIsCheatPanelOpen] = useState(false);
 
       const [timerSeconds, setTimerSeconds] = useState(0);
       const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -466,7 +467,7 @@
 
       useEffect(() => {
         if (window.lucide) window.lucide.createIcons();
-      }, [activeTab, selectedPreset, isStatusOpen, isSettingsOpen, isResetConfirmOpen, isNameEditOpen, selectedRankTab, questResultModal, innBillNotice, blockedNotice, cheatWarningNotice, player]);
+      }, [activeTab, selectedPreset, isStatusOpen, isSettingsOpen, isResetConfirmOpen, isNameEditOpen, isCheatAuthOpen, isCheatPanelOpen, selectedRankTab, questResultModal, innBillNotice, blockedNotice, cheatWarningNotice, player]);
 
       useEffect(() => {
         if (isTimerRunning) {
@@ -547,6 +548,44 @@
         setIsSettingsOpen(false);
         setIsStatusOpen(false);
         window.location.reload();
+      };
+
+      // チート認証（パスワード0523）
+      const handleVerifyCheatPassword = () => {
+        if (cheatPassword === '0523') {
+          setCheatError(false);
+          setCheatPassword('');
+          setIsCheatAuthOpen(false);
+          setIsCheatPanelOpen(true);
+        } else {
+          setCheatError(true);
+        }
+      };
+
+      // チートステータス加算処理
+      const applyCheatStat = (statKey, addVal) => {
+        setPlayer(prev => ({
+          ...prev,
+          stats: {
+            ...prev.stats,
+            [statKey]: addVal === 0 ? 0 : Math.max(0, (prev.stats[statKey] || 0) + addVal)
+          }
+        }));
+      };
+
+      const applyCheatGold = (addGold) => {
+        setPlayer(prev => ({
+          ...prev,
+          gold: Math.max(0, prev.gold + addGold),
+          isCamping: false
+        }));
+      };
+
+      const applyCheatStreak = (addDays) => {
+        setPlayer(prev => ({
+          ...prev,
+          streakCount: Math.max(1, (prev.streakCount || 1) + addDays)
+        }));
       };
 
       const handleRecord = () => {
@@ -658,7 +697,10 @@
       const filteredQuests = todayQuests.filter(q => q.rank === selectedRankTab);
       const dailyCleared = player.dailyClearedQuests || [];
 
-      const estimatedGain = Math.max(1, Math.round((Number(inputValue || 0) / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1)));
+      const rawInputNumber = Number(inputValue);
+      const estimatedGain = rawInputNumber > 0 
+        ? Math.max(1, Math.round((rawInputNumber / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1)))
+        : 0;
 
       return (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-36 bg-[#090c16] border-x border-slate-800 shadow-2xl">
@@ -776,7 +818,7 @@
                     </button>
                     {timerSeconds > 0 && (
                       <button
-                        onClick={() => { setIsTimerRunning(false); setInputValue(Math.max(1, Math.round(timerSeconds / 60))); }}
+                        onClick={() => { setIsTimerRunning(false); setInputValue(String(Math.max(1, Math.round(timerSeconds / 60)))); }}
                         className="px-2.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-bold"
                       >
                         反映
@@ -792,7 +834,7 @@
                   </div>
                 </div>
 
-                {/* 記録入力欄 */}
+                {/* 記録入力欄（全消し可能） */}
                 <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-200 font-bold text-sm">{selectedPreset.name} ({selectedPreset.unit})</span>
@@ -802,15 +844,24 @@
                   </div>
                   <div className="flex space-x-1.5">
                     {[5, 10, 20, 30].map(num => (
-                      <button key={num} onClick={() => setInputValue(num)} className="flex-1 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300 hover:border-slate-500">
+                      <button key={num} onClick={() => setInputValue(String(num))} className="flex-1 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300 hover:border-slate-500">
                         {num}
                       </button>
                     ))}
                   </div>
                   <div className="flex items-center space-x-2 pt-1">
                     <input
-                      type="number" min="1" max="9999" value={inputValue}
-                      onChange={(e) => setInputValue(Math.max(1, parseInt(e.target.value) || 1))}
+                      type="text"
+                      inputMode="numeric"
+                      value={inputValue}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        // 数字のみ許可、空文字もそのまま許可（全消し対応）
+                        if (val === '' || /^\d+$/.test(val)) {
+                          setInputValue(val);
+                        }
+                      }}
+                      placeholder="0"
                       className="w-24 bg-slate-950 border-2 border-slate-700 rounded-xl py-2 text-center text-xl font-scifi font-bold text-white focus:outline-none focus:border-cyan-400"
                     />
                     <button
@@ -831,7 +882,7 @@
                       return (
                         <button
                           key={p.id}
-                          onClick={() => { setSelectedPreset(p); setInputValue(p.defaultVal); }}
+                          onClick={() => { setSelectedPreset(p); setInputValue(String(p.defaultVal)); }}
                           className={`p-2.5 rounded-xl border transition text-left flex flex-col justify-between ${
                             isSelected 
                               ? `bg-slate-900 border-${theme === 'cyan' ? 'cyan-400' : theme === 'purple' ? 'purple-400' : 'pink-400'} text-white ${themeShadow}`
@@ -999,7 +1050,7 @@
                 </div>
                 <button 
                   onClick={() => {
-                    setInputValue(selectedPreset.defaultVal);
+                    setInputValue(String(selectedPreset.defaultVal));
                     setCheatWarningNotice(null);
                   }} 
                   className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow transition active:scale-95"
@@ -1171,6 +1222,7 @@
                   </div>
                 </div>
 
+                {/* 冒険者名 */}
                 <div className="flex items-center justify-center space-x-1.5">
                   <span className="font-scifi font-black text-xl text-white tracking-wide">{player.name}</span>
                   <button 
@@ -1259,7 +1311,7 @@
             </div>
           )}
 
-          {/* 設定モーダル */}
+          {/* 設定モーダル（チートボタン追加） */}
           {isSettingsOpen && (
             <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6">
               <div className="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-xs w-full space-y-4 shadow-2xl">
@@ -1272,7 +1324,20 @@
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <div className="text-slate-400">データ管理</div>
+                  <div className="text-slate-400">開発者・デバッグ管理</div>
+                  {/* チートボタン */}
+                  <button 
+                    onClick={() => {
+                      setIsSettingsOpen(false);
+                      setIsCheatAuthOpen(true);
+                    }}
+                    className="w-full py-2.5 px-3 rounded-xl bg-amber-950/80 hover:bg-amber-900/80 border border-amber-500/60 text-amber-300 font-bold text-xs flex items-center justify-center space-x-1.5 transition shadow"
+                  >
+                    <i data-lucide="zap" className="w-4 h-4 text-amber-400"></i>
+                    <span>チート（リミッター解除）</span>
+                  </button>
+
+                  <div className="text-slate-400 pt-2">データ管理</div>
                   <button 
                     onClick={() => setIsResetConfirmOpen(true)}
                     className="w-full py-2.5 px-3 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-red-500/50 text-red-300 font-bold text-xs flex items-center justify-center space-x-1.5 transition"
@@ -1287,6 +1352,122 @@
                   className="w-full py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700"
                 >
                   閉じる
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* チート暗証番号認証モーダル（パスワード：0523） */}
+          {isCheatAuthOpen && (
+            <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
+              <div className="bg-slate-900 border-2 border-amber-500/70 rounded-3xl p-5 max-w-xs w-full space-y-4 shadow-2xl text-center">
+                <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50 flex items-center justify-center mx-auto">
+                  <i data-lucide="key" className="w-6 h-6"></i>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-sm text-white">開発者認証コード入力</h3>
+                  <p className="text-[11px] text-slate-400">暗証番号を入力してリミッターを解除してください</p>
+                </div>
+
+                <input 
+                  type="password" 
+                  maxLength="8"
+                  value={cheatPassword} 
+                  onChange={(e) => {
+                    setCheatPassword(e.target.value);
+                    setCheatError(false);
+                  }}
+                  placeholder="Password"
+                  className={`w-full bg-slate-950 border-2 rounded-xl py-2 px-3 text-center text-lg font-mono font-bold text-white focus:outline-none ${
+                    cheatError ? 'border-red-500 animate-shake' : 'border-slate-700 focus:border-amber-400'
+                  }`}
+                />
+                {cheatError && (
+                  <div className="text-[11px] text-red-400 font-bold">認証コードが違います</div>
+                )}
+
+                <div className="flex space-x-2 pt-1">
+                  <button 
+                    onClick={() => {
+                      setIsCheatAuthOpen(false);
+                      setCheatPassword('');
+                      setCheatError(false);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs"
+                  >
+                    キャンセル
+                  </button>
+                  <button 
+                    onClick={handleVerifyCheatPassword}
+                    className="flex-1 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow hover:bg-amber-400"
+                  >
+                    解錠
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 開発者用チート操作パネル（解錠後） */}
+          {isCheatPanelOpen && (
+            <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+              <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-neon-gold">
+                <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                  <div className="flex items-center space-x-1.5 text-amber-400 font-bold text-sm">
+                    <i data-lucide="unlock" className="w-4 h-4"></i>
+                    <span>開発者用ステータス操作</span>
+                  </div>
+                  <button onClick={() => setIsCheatPanelOpen(false)} className="text-slate-400 hover:text-white">✕</button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  {/* 各ステータス操作 */}
+                  {[
+                    { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400' },
+                    { key: 'agility', name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400' },
+                    { key: 'flexibility', name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400' },
+                    { key: 'intelligence', name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400' },
+                  ].map(s => (
+                    <div key={s.key} className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
+                      <div>
+                        <span className={`font-bold ${s.color}`}>{s.name}</span>
+                        <span className="text-white font-mono font-bold ml-2">{s.val}</span>
+                      </div>
+                      <div className="flex space-x-1">
+                        <button onClick={() => applyCheatStat(s.key, 10)} className="px-2 py-1 rounded bg-slate-800 text-amber-300 font-bold border border-slate-700 hover:bg-slate-700">+10</button>
+                        <button onClick={() => applyCheatStat(s.key, 50)} className="px-2 py-1 rounded bg-slate-800 text-amber-400 font-bold border border-slate-700 hover:bg-slate-700">+50</button>
+                        <button onClick={() => applyCheatStat(s.key, 0)} className="px-2 py-1 rounded bg-red-950 text-red-300 border border-red-800 hover:bg-red-900">0</button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* ゴールド＆信用操作 */}
+                  <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <span className="font-bold text-amber-300">所持金</span>
+                      <span className="text-white font-mono font-bold ml-2">{player.gold} G</span>
+                    </div>
+                    <button onClick={() => applyCheatGold(1000)} className="px-3 py-1 rounded bg-amber-500 text-slate-950 font-bold shadow">
+                      +1000 G
+                    </button>
+                  </div>
+
+                  <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <span className="font-bold text-cyan-300">鍛錬継続（信用）</span>
+                      <span className="text-white font-mono font-bold ml-2">{player.streakCount || 1}日</span>
+                    </div>
+                    <button onClick={() => applyCheatStreak(7)} className="px-3 py-1 rounded bg-cyan-500 text-slate-950 font-bold shadow">
+                      +7日
+                    </button>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => setIsCheatPanelOpen(false)}
+                  className="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow hover:bg-amber-400"
+                >
+                  完了して戻る
                 </button>
               </div>
             </div>
