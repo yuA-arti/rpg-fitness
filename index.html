@@ -60,6 +60,7 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
+    // ギルド受付嬢クレアのドット絵
     function GuildReceptionistPixel({ size = 52 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40">
@@ -85,6 +86,7 @@
       );
     }
 
+    // ギルド監査官ミレイのドット絵
     function GuildAuditorPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60">
@@ -109,6 +111,7 @@
       );
     }
 
+    // ① 古びた安宿の店主（バルガス）
     function InnOldManPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-800">
@@ -127,6 +130,7 @@
       );
     }
 
+    // ② 普通の宿屋の看板娘（エマ）
     function InnGirlPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-emerald-500/50">
@@ -146,6 +150,7 @@
       );
     }
 
+    // ③ 高級宿屋の執事（セバスチャン）
     function InnButlerPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-purple-500/50">
@@ -374,7 +379,6 @@
 
       const [activeTab, setActiveTab] = useState('train');
       const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
-      // 入力値を空文字許容の文字列型で保持（全消し可能にする）
       const [inputValue, setInputValue] = useState(String(PRESETS[0].defaultVal));
       const [isStatusOpen, setIsStatusOpen] = useState(false);
       const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -387,7 +391,9 @@
       const [blockedNotice, setBlockedNotice] = useState(null);
       const [cheatWarningNotice, setCheatWarningNotice] = useState(null);
 
-      // チート認証・操作用State
+      // クレアの衰退予兆警告モーダル (3日サボり)
+      const [decayWarningNotice, setDecayWarningNotice] = useState(null);
+
       const [isCheatAuthOpen, setIsCheatAuthOpen] = useState(false);
       const [cheatPassword, setCheatPassword] = useState('');
       const [cheatError, setCheatError] = useState(false);
@@ -402,6 +408,7 @@
       const currentJob = determineJob(player.stats);
       const inn = getInnInfo(currentJob.tier);
 
+      // 日付変更チェック（3日目：クレアの衰退警告 / 4日目以降：ステータス減少）
       useEffect(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -418,13 +425,27 @@
             const camping = newGold < 0;
 
             const newStats = { ...player.stats };
+            const warningStats = []; // 3日放置の衰退警告リスト
+            const decayedStats = []; // 4日以上放置で実際に減少したリスト
+
+            const statNameMap = { strength: '筋力', agility: '俊敏', flexibility: '柔軟', intelligence: '知力' };
+
             ['strength', 'agility', 'flexibility', 'intelligence'].forEach(k => {
               if (player.lastTrainedDates[k]) {
                 const td = new Date(player.lastTrainedDates[k]);
                 td.setHours(0, 0, 0, 0);
-                const idle = Math.floor((todayTime - td.getTime()) / (1000 * 60 * 60 * 24));
-                if (idle >= 3) {
-                  newStats[k] = Math.max(0, newStats[k] - (idle - 2));
+                const idleDays = Math.floor((todayTime - td.getTime()) / (1000 * 60 * 60 * 24));
+
+                // 3日目の予兆警告（数値は減らさない）
+                if (idleDays === 3) {
+                  warningStats.push(statNameMap[k]);
+                }
+                // 4日目以降の実減少（4日目で-1、5日目で-2……）
+                else if (idleDays >= 4) {
+                  const decayAmount = idleDays - 3;
+                  const prevVal = newStats[k] || 0;
+                  newStats[k] = Math.max(0, prevVal - decayAmount);
+                  decayedStats.push({ name: statNameMap[k], amount: decayAmount, current: newStats[k] });
                 }
               }
             });
@@ -441,6 +462,7 @@
               isCamping: camping
             }));
 
+            // 宿代モーダル
             setInnBillNotice({
               innId: inn.id,
               innName: inn.name,
@@ -451,6 +473,14 @@
               isCamping: camping,
               speech: camping ? inn.getCampSpeech(player.name) : inn.getNormalSpeech(player.name, diffDays, cost)
             });
+
+            // 3日放置の予兆警告、または4日以上の減少警告をクレアから通知
+            if (warningStats.length > 0 || decayedStats.length > 0) {
+              setDecayWarningNotice({
+                warningList: warningStats,
+                decayedList: decayedStats
+              });
+            }
           }
         } else {
           setPlayer(prev => ({ ...prev, lastActiveDate: todayTime }));
@@ -467,7 +497,7 @@
 
       useEffect(() => {
         if (window.lucide) window.lucide.createIcons();
-      }, [activeTab, selectedPreset, isStatusOpen, isSettingsOpen, isResetConfirmOpen, isNameEditOpen, isCheatAuthOpen, isCheatPanelOpen, selectedRankTab, questResultModal, innBillNotice, blockedNotice, cheatWarningNotice, player]);
+      }, [activeTab, selectedPreset, isStatusOpen, isSettingsOpen, isResetConfirmOpen, isNameEditOpen, isCheatAuthOpen, isCheatPanelOpen, selectedRankTab, questResultModal, innBillNotice, blockedNotice, cheatWarningNotice, decayWarningNotice, player]);
 
       useEffect(() => {
         if (isTimerRunning) {
@@ -550,7 +580,6 @@
         window.location.reload();
       };
 
-      // チート認証（パスワード0523）
       const handleVerifyCheatPassword = () => {
         if (cheatPassword === '0523') {
           setCheatError(false);
@@ -562,7 +591,6 @@
         }
       };
 
-      // チートステータス加算処理
       const applyCheatStat = (statKey, addVal) => {
         setPlayer(prev => ({
           ...prev,
@@ -588,6 +616,7 @@
         }));
       };
 
+      // 鍛錬記録（サボりカウントも同時に0日へリセット）
       const handleRecord = () => {
         const amount = Number(inputValue);
         if (!amount || amount <= 0) return;
@@ -701,6 +730,18 @@
       const estimatedGain = rawInputNumber > 0 
         ? Math.max(1, Math.round((rawInputNumber / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1)))
         : 0;
+
+      // 放置日数のチェック（ステータス画面で衰退警告バッジを表示するため）
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      const todayMidTime = todayDate.getTime();
+
+      const getIdleDays = (key) => {
+        if (!player.lastTrainedDates[key]) return 0;
+        const td = new Date(player.lastTrainedDates[key]);
+        td.setHours(0, 0, 0, 0);
+        return Math.floor((todayMidTime - td.getTime()) / (1000 * 60 * 60 * 24));
+      };
 
       return (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-36 bg-[#090c16] border-x border-slate-800 shadow-2xl">
@@ -834,7 +875,7 @@
                   </div>
                 </div>
 
-                {/* 記録入力欄（全消し可能） */}
+                {/* 記録入力欄 */}
                 <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-200 font-bold text-sm">{selectedPreset.name} ({selectedPreset.unit})</span>
@@ -856,7 +897,6 @@
                       value={inputValue}
                       onChange={(e) => {
                         const val = e.target.value;
-                        // 数字のみ許可、空文字もそのまま許可（全消し対応）
                         if (val === '' || /^\d+$/.test(val)) {
                           setInputValue(val);
                         }
@@ -1026,6 +1066,53 @@
               </button>
             </div>
           </div>
+
+          {/* クレアの衰退予兆警告モーダル（3日サボり時） */}
+          {decayWarningNotice && (
+            <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
+              <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-neon-gold text-center">
+                <div className="flex justify-center">
+                  <GuildReceptionistPixel size={64} />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] text-amber-400 font-bold bg-amber-950/90 px-2.5 py-0.5 rounded border border-amber-500/40">
+                    ギルド職員 クレア
+                  </span>
+                  <h3 className="font-bold text-sm text-white pt-1">
+                    {decayWarningNotice.warningList.length > 0 ? '能力の衰退予兆を検知しました' : '能力値が少し低下しました'}
+                  </h3>
+                </div>
+
+                <div className="bg-slate-950/85 p-3.5 rounded-2xl border border-slate-800 text-left space-y-2">
+                  {decayWarningNotice.warningList.length > 0 && (
+                    <p className="text-xs text-amber-200 leading-relaxed font-medium">
+                      「{player.name}さん！ 最近【<strong className="text-white font-bold">{decayWarningNotice.warningList.join('・')}</strong>】の鍛錬が3日間お休みのようです……！<br/><br/>
+                      このままだと明日から能力が衰え始めちゃいますよ！ 今日少しだけでも身体を動かしてカンを取り戻しませんか？」
+                    </p>
+                  )}
+
+                  {decayWarningNotice.decayedList.length > 0 && (
+                    <div className="text-xs text-red-300 space-y-1 pt-1 border-t border-slate-800">
+                      <div className="font-bold text-red-400">【4日以上放置による能力減少】</div>
+                      {decayWarningNotice.decayedList.map((d, i) => (
+                        <div key={i} className="flex justify-between font-mono">
+                          <span>{d.name}:</span>
+                          <span>-{d.amount} (現在値: {d.current})</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <button 
+                  onClick={() => setDecayWarningNotice(null)} 
+                  className="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow hover:bg-amber-400 active:scale-95 transition"
+                >
+                  今日鍛錬する！
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* 監査官ミレイの魔力ドーピング疑い・警告モーダル */}
           {cheatWarningNotice && (
@@ -1222,7 +1309,6 @@
                   </div>
                 </div>
 
-                {/* 冒険者名 */}
                 <div className="flex items-center justify-center space-x-1.5">
                   <span className="font-scifi font-black text-xl text-white tracking-wide">{player.name}</span>
                   <button 
@@ -1249,21 +1335,29 @@
                 </div>
               </div>
 
-              {/* 能力値バー */}
+              {/* 能力値バー（3日以上サボっている項目に警告表示） */}
               <div className="mt-3 space-y-2">
                 {[
-                  { name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
-                  { name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400', bar: 'from-cyan-500 to-blue-500' },
-                  { name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400', bar: 'from-emerald-500 to-teal-500' },
-                  { name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400', bar: 'from-purple-500 to-indigo-500' },
+                  { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
+                  { key: 'agility', name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400', bar: 'from-cyan-500 to-blue-500' },
+                  { key: 'flexibility', name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400', bar: 'from-emerald-500 to-teal-500' },
+                  { key: 'intelligence', name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400', bar: 'from-purple-500 to-indigo-500' },
                 ].map(s => {
                   const info = getStatRankInfo(s.val);
                   const pct = Math.min(100, Math.floor((s.val / info.cap) * 100));
+                  const idle = getIdleDays(s.key);
 
                   return (
                     <div key={s.name} className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
                       <div className="flex justify-between items-center text-xs">
-                        <span className={`font-bold ${s.color}`}>{s.name}</span>
+                        <div className="flex items-center space-x-1.5">
+                          <span className={`font-bold ${s.color}`}>{s.name}</span>
+                          {idle >= 3 && (
+                            <span className="text-[9px] bg-red-950/80 text-red-300 border border-red-500/50 px-1 rounded animate-pulse">
+                              ⚠️{idle >= 4 ? '衰退中' : '衰退予兆'}
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center space-x-1.5 font-mono">
                           <span className="text-white font-bold text-sm">{s.val} / {info.cap}</span>
                           <span className="text-amber-300 font-bold font-scifi">[Rank {info.rank}]</span>
@@ -1311,7 +1405,7 @@
             </div>
           )}
 
-          {/* 設定モーダル（チートボタン追加） */}
+          {/* 設定モーダル */}
           {isSettingsOpen && (
             <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6">
               <div className="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-xs w-full space-y-4 shadow-2xl">
@@ -1325,7 +1419,6 @@
 
                 <div className="space-y-2 text-xs">
                   <div className="text-slate-400">開発者・デバッグ管理</div>
-                  {/* チートボタン */}
                   <button 
                     onClick={() => {
                       setIsSettingsOpen(false);
@@ -1357,7 +1450,7 @@
             </div>
           )}
 
-          {/* チート暗証番号認証モーダル（パスワード：0523） */}
+          {/* チート認証モーダル */}
           {isCheatAuthOpen && (
             <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
               <div className="bg-slate-900 border-2 border-amber-500/70 rounded-3xl p-5 max-w-xs w-full space-y-4 shadow-2xl text-center">
@@ -1408,7 +1501,7 @@
             </div>
           )}
 
-          {/* 開発者用チート操作パネル（解錠後） */}
+          {/* 開発者用チート操作パネル */}
           {isCheatPanelOpen && (
             <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
               <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-neon-gold">
@@ -1421,7 +1514,6 @@
                 </div>
 
                 <div className="space-y-3 text-xs">
-                  {/* 各ステータス操作 */}
                   {[
                     { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400' },
                     { key: 'agility', name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400' },
@@ -1441,7 +1533,6 @@
                     </div>
                   ))}
 
-                  {/* ゴールド＆信用操作 */}
                   <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center">
                     <div>
                       <span className="font-bold text-amber-300">所持金</span>
