@@ -60,7 +60,6 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // ギルド受付嬢クレアのドット絵
     function GuildReceptionistPixel({ size = 52 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40">
@@ -86,7 +85,6 @@
       );
     }
 
-    // ギルド監査官ミレイのドット絵
     function GuildAuditorPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60">
@@ -111,7 +109,6 @@
       );
     }
 
-    // ① 古びた安宿の店主（バルガス）
     function InnOldManPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-800">
@@ -130,7 +127,6 @@
       );
     }
 
-    // ② 普通の宿屋の看板娘（エマ）
     function InnGirlPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-emerald-500/50">
@@ -150,7 +146,6 @@
       );
     }
 
-    // ③ 高級宿屋の執事（セバスチャン）
     function InnButlerPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-purple-500/50">
@@ -390,8 +385,6 @@
       const [innBillNotice, setInnBillNotice] = useState(null);
       const [blockedNotice, setBlockedNotice] = useState(null);
       const [cheatWarningNotice, setCheatWarningNotice] = useState(null);
-
-      // クレアの衰退予兆警告モーダル (3日サボり)
       const [decayWarningNotice, setDecayWarningNotice] = useState(null);
 
       const [isCheatAuthOpen, setIsCheatAuthOpen] = useState(false);
@@ -425,8 +418,8 @@
             const camping = newGold < 0;
 
             const newStats = { ...player.stats };
-            const warningStats = []; // 3日放置の衰退警告リスト
-            const decayedStats = []; // 4日以上放置で実際に減少したリスト
+            const warningStats = [];
+            const decayedStats = [];
 
             const statNameMap = { strength: '筋力', agility: '俊敏', flexibility: '柔軟', intelligence: '知力' };
 
@@ -436,11 +429,11 @@
                 td.setHours(0, 0, 0, 0);
                 const idleDays = Math.floor((todayTime - td.getTime()) / (1000 * 60 * 60 * 24));
 
-                // 3日目の予兆警告（数値は減らさない）
+                // 3日目の予兆警告
                 if (idleDays === 3) {
                   warningStats.push(statNameMap[k]);
                 }
-                // 4日目以降の実減少（4日目で-1、5日目で-2……）
+                // 4日目以降の実減少
                 else if (idleDays >= 4) {
                   const decayAmount = idleDays - 3;
                   const prevVal = newStats[k] || 0;
@@ -462,7 +455,6 @@
               isCamping: camping
             }));
 
-            // 宿代モーダル
             setInnBillNotice({
               innId: inn.id,
               innName: inn.name,
@@ -474,7 +466,6 @@
               speech: camping ? inn.getCampSpeech(player.name) : inn.getNormalSpeech(player.name, diffDays, cost)
             });
 
-            // 3日放置の予兆警告、または4日以上の減少警告をクレアから通知
             if (warningStats.length > 0 || decayedStats.length > 0) {
               setDecayWarningNotice({
                 warningList: warningStats,
@@ -616,7 +607,6 @@
         }));
       };
 
-      // 鍛錬記録（サボりカウントも同時に0日へリセット）
       const handleRecord = () => {
         const amount = Number(inputValue);
         if (!amount || amount <= 0) return;
@@ -731,7 +721,7 @@
         ? Math.max(1, Math.round((rawInputNumber / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1)))
         : 0;
 
-      // 放置日数のチェック（ステータス画面で衰退警告バッジを表示するため）
+      // 放置日数の算出
       const todayDate = new Date();
       todayDate.setHours(0, 0, 0, 0);
       const todayMidTime = todayDate.getTime();
@@ -741,6 +731,13 @@
         const td = new Date(player.lastTrainedDates[key]);
         td.setHours(0, 0, 0, 0);
         return Math.floor((todayMidTime - td.getTime()) / (1000 * 60 * 60 * 24));
+      };
+
+      // 鍛錬不足ステータス名のバッジラベル生成
+      const getIdleBadgeText = (idle) => {
+        if (idle === 3) return '⚠️鍛錬不足 3日目 (衰退予兆)';
+        if (idle >= 4) return `⚠️鍛錬不足 ${idle}日目 (-1/日)`;
+        return null;
       };
 
       return (
@@ -803,7 +800,7 @@
           {/* メイン画面 */}
           <main className="p-3.5 flex-1 space-y-3">
             
-            {/* ステータス概要 */}
+            {/* ステータス概要（サボり警告バッジを常時表示） */}
             <div className={`rounded-2xl border bg-gradient-to-b from-[#141829] to-[#0d101e] p-3 shadow-lg ${themeBorder} space-y-2`}>
               <div className="flex justify-between items-center">
                 <span className="text-[11px] text-amber-300 font-bold bg-black/40 px-2.5 py-0.5 rounded-full border border-amber-400/30">
@@ -816,26 +813,28 @@
               </div>
 
               <div className="grid grid-cols-4 gap-1.5 pt-1 text-center font-mono">
-                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-red-900/40">
-                  <div className="text-[9px] text-red-400 font-bold">筋力</div>
-                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.strength}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(player.stats.strength).rank}</div>
-                </div>
-                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-cyan-900/40">
-                  <div className="text-[9px] text-cyan-400 font-bold">俊敏</div>
-                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.agility}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(player.stats.agility).rank}</div>
-                </div>
-                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-emerald-900/40">
-                  <div className="text-[9px] text-emerald-400 font-bold">柔軟</div>
-                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.flexibility}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(player.stats.flexibility).rank}</div>
-                </div>
-                <div className="bg-slate-950/70 p-1.5 rounded-xl border border-purple-900/40">
-                  <div className="text-[9px] text-purple-400 font-bold">知力</div>
-                  <div className="text-xs font-scifi font-bold text-white mt-0.5">{player.stats.intelligence}</div>
-                  <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(player.stats.intelligence).rank}</div>
-                </div>
+                {[
+                  { key: 'strength', name: '筋力', val: player.stats.strength, color: 'text-red-400', border: 'border-red-900/40' },
+                  { key: 'agility', name: '俊敏', val: player.stats.agility, color: 'text-cyan-400', border: 'border-cyan-900/40' },
+                  { key: 'flexibility', name: '柔軟', val: player.stats.flexibility, color: 'text-emerald-400', border: 'border-emerald-900/40' },
+                  { key: 'intelligence', name: '知力', val: player.stats.intelligence, color: 'text-purple-400', border: 'border-purple-900/40' },
+                ].map(s => {
+                  const idle = getIdleDays(s.key);
+                  return (
+                    <div key={s.key} className={`bg-slate-950/70 p-1.5 rounded-xl border ${s.border} relative flex flex-col justify-between`}>
+                      <div>
+                        <div className={`text-[9px] ${s.color} font-bold`}>{s.name}</div>
+                        <div className="text-xs font-scifi font-bold text-white mt-0.5">{s.val}</div>
+                        <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(s.val).rank}</div>
+                      </div>
+                      {idle >= 3 && (
+                        <div className="mt-1 text-[7.5px] bg-red-950 text-red-300 border border-red-500/50 rounded py-0.2 px-0.5 font-sans leading-tight animate-pulse font-bold">
+                          {idle === 3 ? '予兆' : `${idle}日目 -1/日`}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -913,22 +912,31 @@
                   </div>
                 </div>
 
-                {/* 鍛錬メニュー選択 */}
+                {/* 鍛錬メニュー選択（サボり警告バッジをカード上に表示） */}
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択</div>
                   <div className="grid grid-cols-3 gap-2">
                     {PRESETS.map(p => {
                       const isSelected = selectedPreset.id === p.id;
+                      const idle = getIdleDays(p.category);
+
                       return (
                         <button
                           key={p.id}
                           onClick={() => { setSelectedPreset(p); setInputValue(String(p.defaultVal)); }}
-                          className={`p-2.5 rounded-xl border transition text-left flex flex-col justify-between ${
+                          className={`p-2.5 rounded-xl border transition text-left flex flex-col justify-between relative ${
                             isSelected 
                               ? `bg-slate-900 border-${theme === 'cyan' ? 'cyan-400' : theme === 'purple' ? 'purple-400' : 'pink-400'} text-white ${themeShadow}`
                               : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
                           }`}
                         >
+                          {/* 3日以上サボっているステータスへの警告バッジ */}
+                          {idle >= 3 && (
+                            <span className="absolute -top-1.5 -right-1 text-[8px] bg-red-600 text-white font-bold px-1.5 py-0.2 rounded-full border border-red-300 shadow animate-pulse">
+                              {idle === 3 ? '鍛錬不足' : `不足 -1/日`}
+                            </span>
+                          )}
+
                           <span className="text-xs font-bold truncate text-white">{p.name}</span>
                           <div className="mt-1.5 flex justify-between items-center text-[10px]">
                             <span className="text-slate-400">{p.statName}</span>
@@ -1067,7 +1075,7 @@
             </div>
           </div>
 
-          {/* クレアの衰退予兆警告モーダル（3日サボり時） */}
+          {/* クレアの衰退予兆・心配＆応援モーダル */}
           {decayWarningNotice && (
             <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
               <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-neon-gold text-center">
@@ -1087,7 +1095,8 @@
                   {decayWarningNotice.warningList.length > 0 && (
                     <p className="text-xs text-amber-200 leading-relaxed font-medium">
                       「{player.name}さん！ 最近【<strong className="text-white font-bold">{decayWarningNotice.warningList.join('・')}</strong>】の鍛錬が3日間お休みのようです……！<br/><br/>
-                      このままだと明日から能力が衰え始めちゃいますよ！ 今日少しだけでも身体を動かしてカンを取り戻しませんか？」
+                      少しお疲れが溜まっていたり、お忙しかったりしたのでしょうか……？ 無理は禁物ですが、せっかくここまで鍛え上げた能力が落ちてしまうのはとっても勿体ないです！<br/><br/>
+                      今日の鍛錬メニューに【鍛錬不足】の目印をつけておきましたので、できる種目を1つだけでも一緒にやってみませんか？ 私も全力で応援していますね！」
                     </p>
                   )}
 
@@ -1335,7 +1344,7 @@
                 </div>
               </div>
 
-              {/* 能力値バー（3日以上サボっている項目に警告表示） */}
+              {/* 能力値バー */}
               <div className="mt-3 space-y-2">
                 {[
                   { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
@@ -1354,7 +1363,7 @@
                           <span className={`font-bold ${s.color}`}>{s.name}</span>
                           {idle >= 3 && (
                             <span className="text-[9px] bg-red-950/80 text-red-300 border border-red-500/50 px-1 rounded animate-pulse">
-                              ⚠️{idle >= 4 ? '衰退中' : '衰退予兆'}
+                              {idle === 3 ? '⚠️衰退予兆' : `⚠️衰退中 (-${idle - 3}/日)`}
                             </span>
                           )}
                         </div>
