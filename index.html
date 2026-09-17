@@ -789,7 +789,7 @@
           {/* メイン画面 */}
           <main className="p-3.5 flex-1 space-y-3">
             
-            {/* ステータス概要（サボり表記を「鍛錬不足 -1/日」形式にシンプル化） */}
+            {/* ステータス概要 */}
             <div className={`rounded-2xl border bg-gradient-to-b from-[#141829] to-[#0d101e] p-3 shadow-lg ${themeBorder} space-y-2`}>
               <div className="flex justify-between items-center">
                 <span className="text-[11px] text-amber-300 font-bold bg-black/40 px-2.5 py-0.5 rounded-full border border-amber-400/30">
@@ -901,7 +901,7 @@
                   </div>
                 </div>
 
-                {/* 鍛錬メニュー選択（カード右上のバッジも「鍛錬不足 -1/日」に統一） */}
+                {/* 鍛錬メニュー選択 */}
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択</div>
                   <div className="grid grid-cols-3 gap-2">
@@ -1272,7 +1272,7 @@
             </div>
           )}
 
-          {/* ステータス全画面モーダル（詳細な衰退状況を日本語で分かりやすく表示） */}
+          {/* ステータス全画面モーダル（「鍛錬不足で衰退中！」表記） */}
           {isStatusOpen && (
             <div className="fixed inset-0 z-50 bg-black/95 flex flex-col p-5 overflow-y-auto">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1332,7 +1332,7 @@
                 </div>
               </div>
 
-              {/* 能力値バー（詳細表記：衰退予兆 / 衰退中） */}
+              {/* 能力値バー（表記を「鍛錬不足で衰退中！」に修正） */}
               <div className="mt-3 space-y-2">
                 {[
                   { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
@@ -1350,13 +1350,13 @@
                         <div className="flex items-center space-x-1.5">
                           <span className={`font-bold ${s.color}`}>{s.name}</span>
                           {idle === 3 && (
-                            <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-500/50 px-1 rounded font-bold animate-pulse">
-                              ⚠️鍛錬不足による衰退予兆 (3日放置)
+                            <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-500/50 px-1.5 py-0.2 rounded font-bold animate-pulse">
+                              ⚠️鍛錬不足 予兆 (3日)
                             </span>
                           )}
                           {idle >= 4 && (
-                            <span className="text-[9px] bg-red-950 text-red-300 border border-red-500/50 px-1 rounded font-bold animate-pulse">
-                              ⚠️鍛錬不足による衰退中 ({idle}日放置 / -1/日)
+                            <span className="text-[9px] bg-red-950 text-red-300 border border-red-500/50 px-1.5 py-0.2 rounded font-bold animate-pulse">
+                              ⚠️鍛錬不足で衰退中！ ({idle}日目/-1)
                             </span>
                           )}
                         </div>
