@@ -429,12 +429,9 @@
                 td.setHours(0, 0, 0, 0);
                 const idleDays = Math.floor((todayTime - td.getTime()) / (1000 * 60 * 60 * 24));
 
-                // 3日目の予兆警告
                 if (idleDays === 3) {
                   warningStats.push(statNameMap[k]);
-                }
-                // 4日目以降の実減少
-                else if (idleDays >= 4) {
+                } else if (idleDays >= 4) {
                   const decayAmount = idleDays - 3;
                   const prevVal = newStats[k] || 0;
                   newStats[k] = Math.max(0, prevVal - decayAmount);
@@ -721,7 +718,6 @@
         ? Math.max(1, Math.round((rawInputNumber / selectedPreset.stepVal) * selectedPreset.gain * (player.isCamping ? 0.5 : 1)))
         : 0;
 
-      // 放置日数の算出
       const todayDate = new Date();
       todayDate.setHours(0, 0, 0, 0);
       const todayMidTime = todayDate.getTime();
@@ -731,13 +727,6 @@
         const td = new Date(player.lastTrainedDates[key]);
         td.setHours(0, 0, 0, 0);
         return Math.floor((todayMidTime - td.getTime()) / (1000 * 60 * 60 * 24));
-      };
-
-      // 鍛錬不足ステータス名のバッジラベル生成
-      const getIdleBadgeText = (idle) => {
-        if (idle === 3) return '⚠️鍛錬不足 3日目 (衰退予兆)';
-        if (idle >= 4) return `⚠️鍛錬不足 ${idle}日目 (-1/日)`;
-        return null;
       };
 
       return (
@@ -800,7 +789,7 @@
           {/* メイン画面 */}
           <main className="p-3.5 flex-1 space-y-3">
             
-            {/* ステータス概要（サボり警告バッジを常時表示） */}
+            {/* ステータス概要（サボり表記を「鍛錬不足 -1/日」形式にシンプル化） */}
             <div className={`rounded-2xl border bg-gradient-to-b from-[#141829] to-[#0d101e] p-3 shadow-lg ${themeBorder} space-y-2`}>
               <div className="flex justify-between items-center">
                 <span className="text-[11px] text-amber-300 font-bold bg-black/40 px-2.5 py-0.5 rounded-full border border-amber-400/30">
@@ -829,7 +818,7 @@
                       </div>
                       {idle >= 3 && (
                         <div className="mt-1 text-[7.5px] bg-red-950 text-red-300 border border-red-500/50 rounded py-0.2 px-0.5 font-sans leading-tight animate-pulse font-bold">
-                          {idle === 3 ? '予兆' : `${idle}日目 -1/日`}
+                          {idle === 3 ? '鍛錬不足 予兆' : '鍛錬不足 -1/日'}
                         </div>
                       )}
                     </div>
@@ -912,7 +901,7 @@
                   </div>
                 </div>
 
-                {/* 鍛錬メニュー選択（サボり警告バッジをカード上に表示） */}
+                {/* 鍛錬メニュー選択（カード右上のバッジも「鍛錬不足 -1/日」に統一） */}
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択</div>
                   <div className="grid grid-cols-3 gap-2">
@@ -930,10 +919,9 @@
                               : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
                           }`}
                         >
-                          {/* 3日以上サボっているステータスへの警告バッジ */}
                           {idle >= 3 && (
                             <span className="absolute -top-1.5 -right-1 text-[8px] bg-red-600 text-white font-bold px-1.5 py-0.2 rounded-full border border-red-300 shadow animate-pulse">
-                              {idle === 3 ? '鍛錬不足' : `不足 -1/日`}
+                              {idle === 3 ? '鍛錬不足 予兆' : '鍛錬不足 -1/日'}
                             </span>
                           )}
 
@@ -1284,7 +1272,7 @@
             </div>
           )}
 
-          {/* ステータス全画面モーダル */}
+          {/* ステータス全画面モーダル（詳細な衰退状況を日本語で分かりやすく表示） */}
           {isStatusOpen && (
             <div className="fixed inset-0 z-50 bg-black/95 flex flex-col p-5 overflow-y-auto">
               <div className="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -1344,7 +1332,7 @@
                 </div>
               </div>
 
-              {/* 能力値バー */}
+              {/* 能力値バー（詳細表記：衰退予兆 / 衰退中） */}
               <div className="mt-3 space-y-2">
                 {[
                   { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
@@ -1361,9 +1349,14 @@
                       <div className="flex justify-between items-center text-xs">
                         <div className="flex items-center space-x-1.5">
                           <span className={`font-bold ${s.color}`}>{s.name}</span>
-                          {idle >= 3 && (
-                            <span className="text-[9px] bg-red-950/80 text-red-300 border border-red-500/50 px-1 rounded animate-pulse">
-                              {idle === 3 ? '⚠️衰退予兆' : `⚠️衰退中 (-${idle - 3}/日)`}
+                          {idle === 3 && (
+                            <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-500/50 px-1 rounded font-bold animate-pulse">
+                              ⚠️鍛錬不足による衰退予兆 (3日放置)
+                            </span>
+                          )}
+                          {idle >= 4 && (
+                            <span className="text-[9px] bg-red-950 text-red-300 border border-red-500/50 px-1 rounded font-bold animate-pulse">
+                              ⚠️鍛錬不足による衰退中 ({idle}日放置 / -1/日)
                             </span>
                           )}
                         </div>
