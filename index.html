@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>RPG Fitness: Status Quest</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -60,6 +59,69 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
+    // --- 内蔵SVGアイコン（外部CDNエラーを完全排除） ---
+    const Icon = ({ name, className = "w-4 h-4" }) => {
+      switch (name) {
+        case 'dumbbell':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>
+            </svg>
+          );
+        case 'scroll':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h11a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2Z"/><path d="M4 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"/>
+            </svg>
+          );
+        case 'settings':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          );
+        case 'zap':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          );
+        case 'key':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>
+            </svg>
+          );
+        case 'trash':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+            </svg>
+          );
+        case 'edit':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+          );
+        case 'image-plus':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" y1="5" x2="22" y2="5"/><line x1="19" y1="2" x2="19" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+            </svg>
+          );
+        case 'user':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          );
+        default:
+          return null;
+      }
+    };
+
+    // ドット絵：ギルド受付嬢クレア
     function GuildReceptionistPixel({ size = 52 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40">
@@ -85,6 +147,7 @@
       );
     }
 
+    // ドット絵：ギルド監査官ミレイ
     function GuildAuditorPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60">
@@ -109,6 +172,7 @@
       );
     }
 
+    // ドット絵：古びた安宿（バルガス）
     function InnOldManPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-800">
@@ -127,6 +191,7 @@
       );
     }
 
+    // ドット絵：普通の宿屋（エマ）
     function InnGirlPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-emerald-500/50">
@@ -146,6 +211,7 @@
       );
     }
 
+    // ドット絵：高級宿屋（セバスチャン）
     function InnButlerPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-purple-500/50">
@@ -165,18 +231,18 @@
     }
 
     const PRESETS = [
-      { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300, icon: 'dumbbell' },
-      { id: 'situps', name: '腹筋', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300, icon: 'shield' },
-      { id: 'squats', name: 'スクワット', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300, icon: 'zap' },
-      { id: 'running', name: 'ランニング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, limit: 240, icon: 'flame' },
-      { id: 'walking', name: 'ウォーキング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 240, icon: 'activity' },
-      { id: 'jump_rope', name: '縄跳び / バーピー', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 10, stepVal: 10, gain: 3, limit: 240, icon: 'wind' },
-      { id: 'stretch', name: 'ストレッチ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180, icon: 'heart' },
-      { id: 'yoga', name: 'ヨガ / 体幹', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180, icon: 'sparkles' },
-      { id: 'splits', name: '開脚 / 股関節柔軟', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180, icon: 'smile' },
-      { id: 'reading', name: '読書', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360, icon: 'book-open' },
-      { id: 'study', name: '勉強 / 資格学習', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360, icon: 'brain' },
-      { id: 'language', name: '言語学習 / 暗記', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 360, icon: 'languages' },
+      { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300 },
+      { id: 'situps', name: '腹筋', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300 },
+      { id: 'squats', name: 'スクワット', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300 },
+      { id: 'running', name: 'ランニング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, limit: 240 },
+      { id: 'walking', name: 'ウォーキング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 240 },
+      { id: 'jump_rope', name: '縄跳び / バーピー', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 10, stepVal: 10, gain: 3, limit: 240 },
+      { id: 'stretch', name: 'ストレッチ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180 },
+      { id: 'yoga', name: 'ヨガ / 体幹', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180 },
+      { id: 'splits', name: '開脚 / 股関節柔軟', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180 },
+      { id: 'reading', name: '読書', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360 },
+      { id: 'study', name: '勉強 / 資格学習', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360 },
+      { id: 'language', name: '言語学習 / 暗記', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 360 },
     ];
 
     const RANK_THRESHOLDS = [
@@ -189,7 +255,7 @@
       { rank: 'S', min: 170, max: 99999, cap: 200 },
     ];
 
-    function getStatRankInfo(val) {
+    function getStatRankInfo(val = 0) {
       for (let i = RANK_THRESHOLDS.length - 1; i >= 0; i--) {
         if (val >= RANK_THRESHOLDS[i].min) return RANK_THRESHOLDS[i];
       }
@@ -197,22 +263,21 @@
     }
 
     function calculateOverallRank(stats) {
-      const vals = [stats.strength || 0, stats.agility || 0, stats.flexibility || 0, stats.intelligence || 0].sort((a, b) => b - a);
+      const s = stats || {};
+      const vals = [s.strength || 0, s.agility || 0, s.flexibility || 0, s.intelligence || 0].sort((a, b) => b - a);
       const top2Avg = (vals[0] + vals[1]) / 2;
       return { rank: getStatRankInfo(top2Avg).rank, avgVal: Math.round(top2Avg) };
     }
 
-    // クラス判定ロジック（4項目バランス育成による「勇者」判定を追加）
     function determineJob(stats) {
-      const s = stats.strength || 0;
-      const a = stats.agility || 0;
-      const f = stats.flexibility || 0;
-      const i = stats.intelligence || 0;
+      const s = (stats && stats.strength) || 0;
+      const a = (stats && stats.agility) || 0;
+      const f = (stats && stats.flexibility) || 0;
+      const i = (stats && stats.intelligence) || 0;
       const allVals = [s, a, f, i];
       const minVal = Math.min(...allVals);
       const maxVal = Math.max(...allVals);
 
-      // 【勇者】判定：4ステータス全てが50以上、かつ極端な偏りがない（最大と最小の差が30以内）
       if (minVal >= 50 && (maxVal - minVal) <= 30) {
         if (minVal >= 120) {
           return { name: '真・勇者', tier: '伝説職', desc: '文武柔速すべてを神域まで極めし世界を導く救世主' };
@@ -386,7 +451,20 @@
     function App() {
       const [player, setPlayer] = useState(() => {
         const saved = localStorage.getItem('rpg_fitness_player_guild_v19');
-        return saved ? JSON.parse(saved) : INITIAL_PLAYER_DATA;
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            return {
+              ...INITIAL_PLAYER_DATA,
+              ...parsed,
+              stats: { ...INITIAL_PLAYER_DATA.stats, ...(parsed.stats || {}) },
+              lastTrainedDates: { ...INITIAL_PLAYER_DATA.lastTrainedDates, ...(parsed.lastTrainedDates || {}) }
+            };
+          } catch(e) {
+            console.error("Local data parse error:", e);
+          }
+        }
+        return INITIAL_PLAYER_DATA;
       });
 
       const [activeTab, setActiveTab] = useState('train');
@@ -435,14 +513,14 @@
             const newGold = player.gold - cost;
             const camping = newGold < 0;
 
-            const newStats = { ...player.stats };
+            const newStats = { ...(player.stats || {}) };
             const warningStats = [];
             const decayedStats = [];
 
             const statNameMap = { strength: '筋力', agility: '俊敏', flexibility: '柔軟', intelligence: '知力' };
 
             ['strength', 'agility', 'flexibility', 'intelligence'].forEach(k => {
-              if (player.lastTrainedDates[k]) {
+              if (player.lastTrainedDates && player.lastTrainedDates[k]) {
                 const td = new Date(player.lastTrainedDates[k]);
                 td.setHours(0, 0, 0, 0);
                 const idleDays = Math.floor((todayTime - td.getTime()) / (1000 * 60 * 60 * 24));
@@ -502,10 +580,6 @@
           console.error("Storage error:", e);
         }
       }, [player]);
-
-      useEffect(() => {
-        if (window.lucide) window.lucide.createIcons();
-      }, [activeTab, selectedPreset, isStatusOpen, isSettingsOpen, isResetConfirmOpen, isNameEditOpen, isCheatAuthOpen, isCheatPanelOpen, selectedRankTab, questResultModal, innBillNotice, blockedNotice, cheatWarningNotice, decayWarningNotice, player]);
 
       useEffect(() => {
         if (isTimerRunning) {
@@ -603,8 +677,8 @@
         setPlayer(prev => ({
           ...prev,
           stats: {
-            ...prev.stats,
-            [statKey]: addVal === 0 ? 0 : Math.max(0, (prev.stats[statKey] || 0) + addVal)
+            ...(prev.stats || {}),
+            [statKey]: addVal === 0 ? 0 : Math.max(0, ((prev.stats && prev.stats[statKey]) || 0) + addVal)
           }
         }));
       };
@@ -627,7 +701,6 @@
         }));
       };
 
-      // 開発者用：野宿テスト切り替え
       const toggleCheatCamping = () => {
         setPlayer(prev => {
           const nextCamping = !prev.isCamping;
@@ -639,7 +712,6 @@
         });
       };
 
-      // 開発者用：野宿精算モーダルの呼び出し確認
       const triggerCampingNoticeTest = () => {
         setIsCheatPanelOpen(false);
         setIsSettingsOpen(false);
@@ -656,7 +728,6 @@
         });
       };
 
-      // 開発者用：全ステータス均等セット（勇者テスト）
       const applyCheatHeroStats = (targetVal) => {
         setPlayer(prev => ({
           ...prev,
@@ -687,14 +758,14 @@
         if (player.isCamping) gained = Math.max(1, Math.floor(gained * 0.5));
 
         const cat = selectedPreset.category;
-        const nextVal = (player.stats[cat] || 0) + gained;
+        const nextVal = ((player.stats && player.stats[cat]) || 0) + gained;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
         setPlayer(prev => ({
           ...prev,
-          stats: { ...prev.stats, [cat]: nextVal },
-          lastTrainedDates: { ...prev.lastTrainedDates, [cat]: today.getTime() }
+          stats: { ...(prev.stats || {}), [cat]: nextVal },
+          lastTrainedDates: { ...(prev.lastTrainedDates || {}), [cat]: today.getTime() }
         }));
 
         if (window.confetti) window.confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
@@ -728,7 +799,7 @@
 
         for (let k in quest.reqStats) {
           const req = quest.reqStats[k];
-          const cur = player.stats[k] || 0;
+          const cur = (player.stats && player.stats[k]) || 0;
           const passed = cur >= req;
           if (!passed) isSuccess = false;
           details.push({
@@ -746,7 +817,7 @@
           const wasCamping = player.isCamping;
           const nowCamping = newGold < 0;
 
-          const updatedTitles = [...player.unlockedTitles];
+          const updatedTitles = [...(player.unlockedTitles || [])];
           if (quest.rewardTitle && !updatedTitles.includes(quest.rewardTitle)) {
             updatedTitles.push(quest.rewardTitle);
           }
@@ -788,11 +859,13 @@
       const todayMidTime = todayDate.getTime();
 
       const getIdleDays = (key) => {
-        if (!player.lastTrainedDates[key]) return 0;
+        if (!player || !player.lastTrainedDates || !player.lastTrainedDates[key]) return 0;
         const td = new Date(player.lastTrainedDates[key]);
         td.setHours(0, 0, 0, 0);
         return Math.floor((todayMidTime - td.getTime()) / (1000 * 60 * 60 * 24));
       };
+
+      const curStats = player.stats || { strength: 0, agility: 0, flexibility: 0, intelligence: 0 };
 
       return (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-36 bg-[#090c16] border-x border-slate-800 shadow-2xl">
@@ -811,7 +884,7 @@
                   <img src={player.customAvatar} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
                 ) : (
                   <div className="text-center">
-                    <i data-lucide="image-plus" className="w-5 h-5 text-slate-400 group-hover:text-white"></i>
+                    <Icon name="image-plus" className="w-5 h-5 text-slate-400 group-hover:text-white" />
                   </div>
                 )}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[8px] text-white font-bold transition">
@@ -868,10 +941,10 @@
 
               <div className="grid grid-cols-4 gap-1.5 pt-1 text-center font-mono">
                 {[
-                  { key: 'strength', name: '筋力', val: player.stats.strength, color: 'text-red-400', border: 'border-red-900/40' },
-                  { key: 'agility', name: '俊敏', val: player.stats.agility, color: 'text-cyan-400', border: 'border-cyan-900/40' },
-                  { key: 'flexibility', name: '柔軟', val: player.stats.flexibility, color: 'text-emerald-400', border: 'border-emerald-900/40' },
-                  { key: 'intelligence', name: '知力', val: player.stats.intelligence, color: 'text-purple-400', border: 'border-purple-900/40' },
+                  { key: 'strength', name: '筋力', val: curStats.strength, color: 'text-red-400', border: 'border-red-900/40' },
+                  { key: 'agility', name: '俊敏', val: curStats.agility, color: 'text-cyan-400', border: 'border-cyan-900/40' },
+                  { key: 'flexibility', name: '柔軟', val: curStats.flexibility, color: 'text-emerald-400', border: 'border-emerald-900/40' },
+                  { key: 'intelligence', name: '知力', val: curStats.intelligence, color: 'text-purple-400', border: 'border-purple-900/40' },
                 ].map(s => {
                   const idle = getIdleDays(s.key);
                   return (
@@ -882,7 +955,7 @@
                         <div className="text-[9px] text-slate-400">Rank {getStatRankInfo(s.val).rank}</div>
                       </div>
                       {idle >= 3 && (
-                        <div className="mt-1 text-[7.5px] bg-red-950 text-red-300 border border-red-500/50 rounded py-0.2 px-0.5 font-sans leading-tight animate-pulse font-bold">
+                        <div className="mt-1 text-[7.5px] bg-red-950 text-red-300 border border-red-500/50 rounded py-0.5 px-0.5 font-sans leading-tight animate-pulse font-bold">
                           {idle === 3 ? '鍛錬不足 予兆' : '鍛錬不足 -1/日'}
                         </div>
                       )}
@@ -985,7 +1058,7 @@
                           }`}
                         >
                           {idle >= 3 && (
-                            <span className="absolute -top-1.5 -right-1 text-[8px] bg-red-600 text-white font-bold px-1.5 py-0.2 rounded-full border border-red-300 shadow animate-pulse">
+                            <span className="absolute -top-1.5 -right-1 text-[8px] bg-red-600 text-white font-bold px-1.5 py-0.5 rounded-full border border-red-300 shadow animate-pulse">
                               {idle === 3 ? '鍛錬不足 予兆' : '鍛錬不足 -1/日'}
                             </span>
                           )}
@@ -1105,7 +1178,7 @@
                   activeTab === 'train' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
                 }`}
               >
-                <i data-lucide="dumbbell" className="w-4 h-4"></i>
+                <Icon name="dumbbell" className="w-4 h-4" />
                 <span>鍛錬メニュー</span>
               </button>
 
@@ -1115,7 +1188,7 @@
                   activeTab === 'guild' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
                 }`}
               >
-                <i data-lucide="scroll" className="w-4 h-4"></i>
+                <Icon name="scroll" className="w-4 h-4" />
                 <span>冒険者ギルド</span>
               </button>
 
@@ -1244,14 +1317,13 @@
               <div className={`bg-slate-900 border-2 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-2xl text-center ${
                 innBillNotice.isCamping ? 'border-red-500/80' : 'border-amber-500/60 shadow-neon-gold'
               }`}>
-                {/* 野宿時は自分のアイコン、宿泊時は店主のアイコン */}
                 <div className="flex justify-center">
                   {innBillNotice.isCamping ? (
                     <div className="w-16 h-16 rounded-2xl border-2 border-red-500/60 bg-slate-950 flex items-center justify-center overflow-hidden p-0.5 shadow-md">
                       {player.customAvatar ? (
                         <img src={player.customAvatar} alt="Player" className="w-full h-full object-cover rounded-xl" />
                       ) : (
-                        <i data-lucide="user" className="w-8 h-8 text-slate-400"></i>
+                        <Icon name="user" className="w-8 h-8 text-slate-400" />
                       )}
                     </div>
                   ) : (
@@ -1365,7 +1437,7 @@
                     title="設定"
                     className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition"
                   >
-                    <i data-lucide="settings" className="w-4 h-4"></i>
+                    <Icon name="settings" className="w-4 h-4" />
                   </button>
                   <button onClick={() => setIsStatusOpen(false)} className="text-slate-400 hover:text-white text-lg font-bold">✕</button>
                 </div>
@@ -1381,7 +1453,7 @@
                       <img src={player.customAvatar} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center p-2">
-                        <i data-lucide="image-plus" className="w-7 h-7 text-slate-500 mx-auto"></i>
+                        <Icon name="image-plus" className="w-7 h-7 text-slate-500 mx-auto" />
                         <span className="text-[10px] text-slate-400 mt-1 block">画像を設定</span>
                       </div>
                     )}
@@ -1395,7 +1467,7 @@
                     className="p-1 rounded-lg bg-slate-800 text-slate-400 hover:text-cyan-300 transition"
                     title="名前を変更"
                   >
-                    <i data-lucide="edit-3" className="w-3.5 h-3.5"></i>
+                    <Icon name="edit" className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
@@ -1417,10 +1489,10 @@
               {/* 能力値バー */}
               <div className="mt-3 space-y-2">
                 {[
-                  { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
-                  { key: 'agility', name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400', bar: 'from-cyan-500 to-blue-500' },
-                  { key: 'flexibility', name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400', bar: 'from-emerald-500 to-teal-500' },
-                  { key: 'intelligence', name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400', bar: 'from-purple-500 to-indigo-500' },
+                  { key: 'strength', name: '筋力 (STR)', val: curStats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
+                  { key: 'agility', name: '俊敏 (AGI)', val: curStats.agility, color: 'text-cyan-400', bar: 'from-cyan-500 to-blue-500' },
+                  { key: 'flexibility', name: '柔軟 (FEX)', val: curStats.flexibility, color: 'text-emerald-400', bar: 'from-emerald-500 to-teal-500' },
+                  { key: 'intelligence', name: '知力 (INT)', val: curStats.intelligence, color: 'text-purple-400', bar: 'from-purple-500 to-indigo-500' },
                 ].map(s => {
                   const info = getStatRankInfo(s.val);
                   const pct = Math.min(100, Math.floor((s.val / info.cap) * 100));
@@ -1432,12 +1504,12 @@
                         <div className="flex items-center space-x-1.5">
                           <span className={`font-bold ${s.color}`}>{s.name}</span>
                           {idle === 3 && (
-                            <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-500/50 px-1.5 py-0.2 rounded font-bold animate-pulse">
+                            <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-500/50 px-1.5 py-0.5 rounded font-bold animate-pulse">
                               ⚠️鍛錬不足 予兆 (3日)
                             </span>
                           )}
                           {idle >= 4 && (
-                            <span className="text-[9px] bg-red-950 text-red-300 border border-red-500/50 px-1.5 py-0.2 rounded font-bold animate-pulse">
+                            <span className="text-[9px] bg-red-950 text-red-300 border border-red-500/50 px-1.5 py-0.5 rounded font-bold animate-pulse">
                               ⚠️鍛錬不足で衰退中！ ({idle}日目/-1)
                             </span>
                           )}
@@ -1495,7 +1567,7 @@
               <div className="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-xs w-full space-y-4 shadow-2xl">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-2">
                   <span className="font-bold text-sm text-white flex items-center space-x-1.5">
-                    <i data-lucide="settings" className="w-4 h-4 text-slate-400"></i>
+                    <Icon name="settings" className="w-4 h-4 text-slate-400" />
                     <span>環境設定</span>
                   </span>
                   <button onClick={() => setIsSettingsOpen(false)} className="text-slate-400 hover:text-white">✕</button>
@@ -1510,7 +1582,7 @@
                     }}
                     className="w-full py-2.5 px-3 rounded-xl bg-amber-950/80 hover:bg-amber-900/80 border border-amber-500/60 text-amber-300 font-bold text-xs flex items-center justify-center space-x-1.5 transition shadow"
                   >
-                    <i data-lucide="zap" className="w-4 h-4 text-amber-400"></i>
+                    <Icon name="zap" className="w-4 h-4 text-amber-400" />
                     <span>チート（リミッター解除）</span>
                   </button>
 
@@ -1519,7 +1591,7 @@
                     onClick={() => setIsResetConfirmOpen(true)}
                     className="w-full py-2.5 px-3 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-red-500/50 text-red-300 font-bold text-xs flex items-center justify-center space-x-1.5 transition"
                   >
-                    <i data-lucide="trash-2" className="w-4 h-4"></i>
+                    <Icon name="trash" className="w-4 h-4" />
                     <span>データを初期化（リセット）</span>
                   </button>
                 </div>
@@ -1539,7 +1611,7 @@
             <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
               <div className="bg-slate-900 border-2 border-amber-500/70 rounded-3xl p-5 max-w-xs w-full space-y-4 shadow-2xl text-center">
                 <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50 flex items-center justify-center mx-auto">
-                  <i data-lucide="key" className="w-6 h-6"></i>
+                  <Icon name="key" className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
                   <h3 className="font-bold text-sm text-white">開発者認証コード入力</h3>
@@ -1585,13 +1657,13 @@
             </div>
           )}
 
-          {/* 開発者用チート操作パネル（野宿テスト機能＆勇者テスト機能搭載） */}
+          {/* 開発者用チート操作パネル */}
           {isCheatPanelOpen && (
             <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
               <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 max-w-sm w-full space-y-3.5 shadow-neon-gold">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-2">
                   <div className="flex items-center space-x-1.5 text-amber-400 font-bold text-sm">
-                    <i data-lucide="unlock" className="w-4 h-4"></i>
+                    <Icon name="zap" className="w-4 h-4" />
                     <span>開発者用ステータス操作</span>
                   </div>
                   <button onClick={() => setIsCheatPanelOpen(false)} className="text-slate-400 hover:text-white">✕</button>
@@ -1600,10 +1672,10 @@
                 <div className="space-y-2.5 text-xs">
                   {/* 各ステータス操作 */}
                   {[
-                    { key: 'strength', name: '筋力 (STR)', val: player.stats.strength, color: 'text-red-400' },
-                    { key: 'agility', name: '俊敏 (AGI)', val: player.stats.agility, color: 'text-cyan-400' },
-                    { key: 'flexibility', name: '柔軟 (FEX)', val: player.stats.flexibility, color: 'text-emerald-400' },
-                    { key: 'intelligence', name: '知力 (INT)', val: player.stats.intelligence, color: 'text-purple-400' },
+                    { key: 'strength', name: '筋力 (STR)', val: curStats.strength, color: 'text-red-400' },
+                    { key: 'agility', name: '俊敏 (AGI)', val: curStats.agility, color: 'text-cyan-400' },
+                    { key: 'flexibility', name: '柔軟 (FEX)', val: curStats.flexibility, color: 'text-emerald-400' },
+                    { key: 'intelligence', name: '知力 (INT)', val: curStats.intelligence, color: 'text-purple-400' },
                   ].map(s => (
                     <div key={s.key} className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 flex justify-between items-center">
                       <div>
@@ -1622,7 +1694,7 @@
                   <div className="bg-slate-950/80 p-2 rounded-xl border border-amber-500/40 flex justify-between items-center">
                     <div>
                       <span className="font-bold text-amber-400">勇者クラス検証</span>
-                      <div className="text-[10px] text-slate-400">全ステ均等設定</div>
+                      <div className="text-[10px] text-slate-400">全4ステ均等セット</div>
                     </div>
                     <div className="flex space-x-1">
                       <button onClick={() => applyCheatHeroStats(50)} className="px-2 py-1 rounded bg-amber-500 text-slate-950 font-bold hover:bg-amber-400">勇者(50)</button>
@@ -1671,4 +1743,65 @@
                       <span className="font-bold text-cyan-300">鍛錬継続（信用）</span>
                       <span className="text-white font-mono font-bold ml-2">{player.streakCount || 1}日</span>
                     </div>
-                    <button onClick={() => applyCheatStreak(7)} className="px-3 py-1 rounded bg-cyan-500 text-slate-950 font-bold
+                    <button onClick={() => applyCheatStreak(7)} className="px-3 py-1 rounded bg-cyan-500 text-slate-950 font-bold shadow">
+                      +7日
+                    </button>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => setIsCheatPanelOpen(false)}
+                  className="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow hover:bg-amber-400"
+                >
+                  完了して戻る
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 初期化確認モーダル */}
+          {isResetConfirmOpen && (
+            <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6">
+              <div className="bg-slate-900 border-2 border-red-500/80 rounded-2xl p-5 max-w-xs w-full text-center space-y-3.5 shadow-2xl animate-fade-in">
+                <div className="w-12 h-12 rounded-full bg-red-500/20 text-red-400 border border-red-500/40 flex items-center justify-center mx-auto text-2xl font-bold">
+                  !
+                </div>
+                <h3 className="font-bold text-sm text-white">本当に初期化しますか？</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  鍛錬したステータス、所持ゴールド、獲得した称号など、<br/>
+                  <strong className="text-red-400">すべての記録が消去され初期状態（見習い冒険者）に戻ります。</strong><br/>
+                  この操作は元に戻せません。
+                </p>
+
+                <div className="flex space-x-2 pt-1">
+                  <button 
+                    onClick={() => setIsResetConfirmOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700"
+                  >
+                    キャンセル
+                  </button>
+                  <button 
+                    onClick={executeReset}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-lg shadow-red-900/50"
+                  >
+                    初期化を実行
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    const rootElement = document.getElementById('root');
+    if (ReactDOM.createRoot) {
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(<App/>);
+    } else {
+      ReactDOM.render(<App/>, rootElement);
+    }
+  </script>
+</body>
+</html>
