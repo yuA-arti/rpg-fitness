@@ -255,40 +255,36 @@
       }
     }
 
-    // 宿屋ごとの設定（通常費用＆野宿時の食費のみ設定）
     function getInnInfo(tier) {
       if (tier === '上級職') {
         return {
           id: 'luxury',
           name: '高級宿屋',
           keeperName: '執事 セバスチャン',
-          costPerDay: 30, // 通常時（宿泊＋食事）
-          campCostPerDay: 10, // 野宿時（最低限の食費のみ：約1/3）
+          costPerDay: 30,
+          campCostPerDay: 10,
           desc: '一流冒険者にふさわしい贅を尽くした部屋と栄養食',
-          getNormalSpeech: (name, days, cost) => `「${name}様、おはようございます。昨夜はよくお休みになれましたでしょうか。滞在費 ${days}日分（${cost} G）を精算いたしました。本日も高貴なるご活躍を。」`,
-          getCampSpeech: (name, days, cost) => `「……${name}様、野宿先での最低限の食糧調達費として ${cost} G（${days}日分）を差し引かせていただきます。誠に遺憾ながら、宿泊はお代が貯まるまでお待ちください。」`
+          getNormalSpeech: (name, days, cost) => `「${name}様、おはようございます。昨夜はよくお休みになれましたでしょうか。滞在費 ${days}日分（${cost} G）を精算いたしました。本日も高貴なるご活躍を。」`
         };
       } else if (tier === '基本職') {
         return {
           id: 'normal',
           name: '普通の宿屋',
           keeperName: '看板娘 エマ',
-          costPerDay: 10, // 通常時
-          campCostPerDay: 3, // 野宿時（最低限の食費のみ：約1/3）
+          costPerDay: 10,
+          campCostPerDay: 3,
           desc: '一人前冒険者が集う温かいスープと個室ベッド',
-          getNormalSpeech: (name, days, cost) => `「${name}さん、おはよう！しっかり疲れは取れた？ 宿泊代とお食事代で ${cost} G（${days}日分）いただきまーす！ 今日も無理せず頑張ってね！」`,
-          getCampSpeech: (name, days, cost) => `「${name}さん、野宿生活お疲れさま……！ 体力維持のためのパンと水代 ${cost} G（${days}日分）だけ貰っておくね。早く依頼をこなしてお部屋に戻ってきてね！」`
+          getNormalSpeech: (name, days, cost) => `「${name}さん、おはよう！しっかり疲れは取れた？ 宿泊代とお食事代で ${cost} G（${days}日分）いただきまーす！ 今日も無理せず頑張ってね！」`
         };
       } else {
         return {
           id: 'cheap',
           name: '古びた安宿',
           keeperName: '安宿の店主 バルガス',
-          costPerDay: 3, // 通常時
-          campCostPerDay: 1, // 野宿時（最低限の食費のみ：1/3）
+          costPerDay: 3,
+          campCostPerDay: 1,
           desc: '見習い向けの質素な相部屋と乾パン',
-          getNormalSpeech: (name, days, cost) => `「おう、起きたか${name}。宿泊代とメシ代で ${cost} G（${days}日分）もらうぜ。今日もギルドの雑用でしっかり日銭稼いできな！」`,
-          getCampSpeech: (name, days, cost) => `「おい${name}、野宿で飢え死にしねぇように乾パン代 ${cost} G（${days}日分）だけ引いといたぜ。野たれ死にたくねぇならさっさと依頼受けてきな！」`
+          getNormalSpeech: (name, days, cost) => `「おう、起きたか${name}。宿泊代とメシ代で ${cost} G（${days}日分）もらうぜ。今日もギルドの雑用でしっかり日銭稼いできな！」`
         };
       }
     }
@@ -304,7 +300,7 @@
       { id: 'e3', rank: 'E', name: '初級魔法スクロールの解読', desc: '魔力暴走を起こした巻物の呪文式を冷静に分析する。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 18 }, failLogs: { intelligence: '呪文式の解読が追いつかず暴走した！【知力】を鍛えよう！' }, rewardGold: 24, rewardTitle: '魔導の書生' },
 
       { id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。', reqStreak: 3, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 }, failLogs: { strength: '打ち込みが浅く倒しきれなかった。【筋力】を鍛えよう！', agility: 'ステップについていけなかった。【俊敏】を鍛えよう！' }, rewardGold: 60, rewardTitle: '斥候スレイヤー' },
-      { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！', flexibility: '怪異の衝撃波を受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
+      { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
       { id: 'd3', rank: 'D', name: '盗賊団の暗号通信解読', desc: '街道を脅かす盗賊の密書を解析し奇襲を防ぐ。', reqStreak: 3, reqTypes: ['知力'], reqStats: { intelligence: 35 }, failLogs: { intelligence: '暗号の法則を見抜けなかった！【知力】を鍛えよう！' }, rewardGold: 70, rewardTitle: '見抜く眼' },
 
       { id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。', reqStreak: 5, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 }, failLogs: { strength: '重い棍棒に力負けし弾かれた！【筋力】を鍛えよう！', flexibility: '打撃を受け止めきれなかった！【柔軟】を鍛えよう！' }, rewardGold: 150, rewardTitle: '豪傑の武芸者' },
@@ -405,7 +401,7 @@
       const currentJob = determineJob(player.stats);
       const inn = getInnInfo(currentJob.tier);
 
-      // 日付変更チェック（野宿時は1/3の食費のみ引き落とし）
+      // 日付変更チェック（野宿時は自身の独白＆食費のみ）
       useEffect(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -417,7 +413,6 @@
           const diffDays = Math.floor((todayTime - lastDate.getTime()) / (1000 * 60 * 60 * 24));
 
           if (diffDays >= 1) {
-            // すでに野宿状態なら食費のみ(約1/3)、宿利用中なら通常費用
             const dailyRate = player.isCamping ? inn.campCostPerDay : inn.costPerDay;
             const cost = diffDays * dailyRate;
             const newGold = player.gold - cost;
@@ -460,13 +455,15 @@
 
             setInnBillNotice({
               innId: inn.id,
-              innName: inn.name,
-              keeperName: inn.keeperName,
+              innName: camping ? '野宿生活' : inn.name,
+              keeperName: camping ? `【${player.name}の独白】` : inn.keeperName,
               cost,
               days: diffDays,
               remainingGold: newGold,
               isCamping: camping,
-              speech: camping ? inn.getCampSpeech(player.name, diffDays, cost) : inn.getNormalSpeech(player.name, diffDays, cost)
+              speech: camping
+                ? `「食料調達に ${cost} G（${diffDays}日分）かかった……。硬い地面と寒さで身体が痛い。早く依頼をこなして、温かい宿で身体を休めたい。」`
+                : inn.getNormalSpeech(player.name, diffDays, cost)
             });
 
             if (warningStats.length > 0 || decayedStats.length > 0) {
@@ -1159,7 +1156,7 @@
                   <GuildReceptionistPixel size={64} />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] text-amber-400 font-bold bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40">
+                  <span className="text-[10px] text-amber-400 font-bold bg-amber-950/80 px-2.5 py-0.5 rounded border border-amber-500/40">
                     ギルド職員 クレア
                   </span>
                   <h3 className="font-bold text-sm text-white pt-1">{blockedNotice.title}</h3>
@@ -1179,20 +1176,37 @@
             </div>
           )}
 
-          {/* 宿屋支払いモーダル（野宿時は食費のみ引き落とし） */}
+          {/* 宿屋支払い・野宿独白モーダル */}
           {innBillNotice && (
             <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-5 animate-fade-in">
               <div className={`bg-slate-900 border-2 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-2xl text-center ${
                 innBillNotice.isCamping ? 'border-red-500/80' : 'border-amber-500/60 shadow-neon-gold'
               }`}>
+                {/* 野宿時は自分のアイコン、宿泊時は店主のアイコン */}
                 <div className="flex justify-center">
-                  {innBillNotice.innId === 'cheap' && <InnOldManPixel size={64} />}
-                  {innBillNotice.innId === 'normal' && <InnGirlPixel size={64} />}
-                  {innBillNotice.innId === 'luxury' && <InnButlerPixel size={64} />}
+                  {innBillNotice.isCamping ? (
+                    <div className="w-16 h-16 rounded-2xl border-2 border-red-500/60 bg-slate-950 flex items-center justify-center overflow-hidden p-0.5 shadow-md">
+                      {player.customAvatar ? (
+                        <img src={player.customAvatar} alt="Player" className="w-full h-full object-cover rounded-xl" />
+                      ) : (
+                        <i data-lucide="user" className="w-8 h-8 text-slate-400"></i>
+                      )}
+                    </div>
+                  ) : (
+                    <React.Fragment>
+                      {innBillNotice.innId === 'cheap' && <InnOldManPixel size={64} />}
+                      {innBillNotice.innId === 'normal' && <InnGirlPixel size={64} />}
+                      {innBillNotice.innId === 'luxury' && <InnButlerPixel size={64} />}
+                    </React.Fragment>
+                  )}
                 </div>
 
                 <div className="space-y-1">
-                  <div className="text-[10px] font-bold text-amber-300 bg-amber-950/80 px-2.5 py-0.5 rounded-full inline-block border border-amber-500/30">
+                  <div className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-block border ${
+                    innBillNotice.isCamping 
+                      ? 'bg-red-950 text-red-300 border-red-500/40' 
+                      : 'bg-amber-950/80 text-amber-300 border-amber-500/30'
+                  }`}>
                     {innBillNotice.innName}
                   </div>
                   <h3 className="font-bold text-sm text-white">{innBillNotice.keeperName}</h3>
@@ -1206,11 +1220,11 @@
 
                 <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 text-xs font-mono space-y-1">
                   <div className="flex justify-between text-slate-400">
-                    <span>滞在期間:</span>
+                    <span>{innBillNotice.isCamping ? '野宿日数:' : '滞在期間:'}</span>
                     <span className="text-white font-bold">{innBillNotice.days} 日分</span>
                   </div>
                   <div className="flex justify-between text-slate-400">
-                    <span>{innBillNotice.isCamping ? '食糧調達費 (野宿):' : 'お支払い (宿泊・食事):'}</span>
+                    <span>{innBillNotice.isCamping ? '食糧調達費 (自炊・購入):' : 'お支払い (宿泊・食事):'}</span>
                     <span className="text-red-400 font-bold">-{innBillNotice.cost} G</span>
                   </div>
                   <div className="flex justify-between border-t border-slate-800 pt-1 text-slate-300">
@@ -1224,10 +1238,10 @@
                 <button 
                   onClick={() => setInnBillNotice(null)} 
                   className={`w-full py-2.5 rounded-xl font-bold text-xs shadow transition active:scale-95 ${
-                    innBillNotice.isCamping ? 'bg-red-600 text-white' : 'bg-amber-500 text-slate-950'
+                    innBillNotice.isCamping ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
                   }`}
                 >
-                  {innBillNotice.isCamping ? '外へ出る（野宿）' : '出発する'}
+                  {innBillNotice.isCamping ? '起き上がる（野宿継続）' : '出発する'}
                 </button>
               </div>
             </div>
