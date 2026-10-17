@@ -57,9 +57,43 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect, useRef, Component } = React;
 
-    // --- 内蔵SVGアイコン（外部CDNエラーを完全排除） ---
+    class ErrorBoundary extends Component {
+      constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+      }
+      static getDerivedStateFromError() {
+        return { hasError: true };
+      }
+      componentDidCatch(error, info) {
+        console.error("ErrorBoundary caught:", error, info);
+      }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="min-h-screen bg-[#070913] text-white flex flex-col items-center justify-center p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-red-950 border border-red-500 flex items-center justify-center text-red-400 text-2xl font-bold">
+                ⚠️
+              </div>
+              <h2 className="text-base font-bold text-red-400">データ読み込みエラーを検知しました</h2>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('rpg_fitness_player_guild_v19');
+                  window.location.reload();
+                }}
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 font-bold text-xs shadow-lg text-white"
+              >
+                データを初期化して復旧
+              </button>
+            </div>
+          );
+        }
+        return this.props.children;
+      }
+    }
+
     const Icon = ({ name, className = "w-4 h-4" }) => {
       switch (name) {
         case 'dumbbell':
@@ -121,7 +155,6 @@
       }
     };
 
-    // ドット絵：ギルド受付嬢クレア
     function GuildReceptionistPixel({ size = 52 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40">
@@ -147,7 +180,6 @@
       );
     }
 
-    // ドット絵：ギルド監査官ミレイ
     function GuildAuditorPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60">
@@ -172,7 +204,6 @@
       );
     }
 
-    // ドット絵：古びた安宿（バルガス）
     function InnOldManPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-800">
@@ -191,7 +222,6 @@
       );
     }
 
-    // ドット絵：普通の宿屋（エマ）
     function InnGirlPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-emerald-500/50">
@@ -211,7 +241,6 @@
       );
     }
 
-    // ドット絵：高級宿屋（セバスチャン）
     function InnButlerPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-purple-500/50">
@@ -376,28 +405,22 @@
       { id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。', reqStreak: 0, reqTypes: ['筋力'], reqStats: { strength: 8 }, failLogs: { strength: '腕力が足りず泥を引き上げきれなかった。【筋力】を鍛えよう！' }, rewardGold: 10, rewardTitle: '奉仕の掃除人' },
       { id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。', reqStreak: 0, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 }, failLogs: { agility: '走るスピードが遅く見失った。【俊敏】を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 10, rewardTitle: '迷い猫の救い手' },
       { id: 'f4', rank: 'F', name: 'ギルド書庫の羊皮紙整理', desc: '乱雑に積まれた古い文献を読み解き仕分ける。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 8 }, failLogs: { intelligence: '古代文字が読めず整理が進まなかった。【知力】を鍛えよう！' }, rewardGold: 9, rewardTitle: '書庫の見習い手' },
-
       { id: 'e1', rank: 'E', name: 'ジャイアントラット駆除', desc: '食料庫を荒らす巨大ネズミの群れを仕留める。', reqStreak: 0, reqTypes: ['俊敏'], reqStats: { agility: 15 }, failLogs: { agility: '踏み込みが遅い！翻弄された。【俊敏】を鍛えよう！' }, rewardGold: 20, rewardTitle: '害獣ハンター' },
       { id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。', reqStreak: 0, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 }, failLogs: { strength: 'パワー負け！弾き飛ばされた。【筋力】を鍛えよう！', flexibility: '衝撃を体幹で受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 25, rewardTitle: '畑の守護者' },
       { id: 'e3', rank: 'E', name: '初級魔法スクロールの解読', desc: '魔力暴走を起こした巻物の呪文式を冷静に分析する。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 18 }, failLogs: { intelligence: '呪文式の解読が追いつかず暴走した！【知力】を鍛えよう！' }, rewardGold: 24, rewardTitle: '魔導の書生' },
-
       { id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。', reqStreak: 3, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 }, failLogs: { strength: '打ち込みが浅く倒しきれなかった。【筋力】を鍛えよう！', agility: 'ステップについていけなかった。【俊敏】を鍛えよう！' }, rewardGold: 60, rewardTitle: '斥候スレイヤー' },
-      { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
+      { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！', flexibility: '怪異の衝撃波を受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
       { id: 'd3', rank: 'D', name: '盗賊団の暗号通信解読', desc: '街道を脅かす盗賊の密書を解析し奇襲を防ぐ。', reqStreak: 3, reqTypes: ['知力'], reqStats: { intelligence: 35 }, failLogs: { intelligence: '暗号の法則を見抜けなかった！【知力】を鍛えよう！' }, rewardGold: 70, rewardTitle: '見抜く眼' },
-
       { id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。', reqStreak: 5, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 }, failLogs: { strength: '重い棍棒に力負けし弾かれた！【筋力】を鍛えよう！', flexibility: '打撃を受け止めきれなかった！【柔軟】を鍛えよう！' }, rewardGold: 150, rewardTitle: '豪傑の武芸者' },
       { id: 'c2', rank: 'C', name: '幻影の魔術師の結界破り', desc: '迷いの森に展開された偽りの幻術結界の核を看破する。', reqStreak: 5, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 60, agility: 50 }, failLogs: { intelligence: '幻術を見抜けず道に迷った！【知力】を鍛えよう！', agility: '歪みへ飛び込む瞬発力が足りなかった。【俊敏】を鍛えよう！' }, rewardGold: 160, rewardTitle: '幻影を暴く者' },
       { id: 'c3', rank: 'C', name: '古代錬金ゴーレムの暴走停止', desc: '暴走する泥人形の魔導回路を解析し弱点を突く。', reqStreak: 5, reqTypes: ['知力', '筋力'], reqStats: { intelligence: 55, strength: 50 }, failLogs: { intelligence: '魔力回路の急所が見抜けなかった！【知力】を鍛えよう！', strength: '打ち込むパワーが足りない！【筋力】を鍛えよう！' }, rewardGold: 165, rewardTitle: '錬金の解体士' },
-
       { id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '砦を半壊させる巨大牛頭魔獣との決闘。', reqStreak: 7, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 }, failLogs: { strength: '破壊力が桁違いだ！押し切られた。【筋力】を鍛えよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【柔軟】を鍛えよう！' }, rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー' },
       { id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王との知恵比べ。', reqStreak: 7, reqTypes: ['知力'], reqStats: { intelligence: 95 }, failLogs: { intelligence: '術式の展開速度で圧倒された！【知力】を極限まで高めよう！' }, rewardGold: 380, rewardTitle: '深淵の解読者' },
       { id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する古代遺跡の大扉を開錠する。', reqStreak: 7, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 }, failLogs: { intelligence: '星盤の方程式が読み解けない！【知力】を鍛えよう！', flexibility: '狭隘な仕掛けの奥へ滑り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 360, rewardTitle: '星辰の解読士' },
       { id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '複数属性のブレスを撃ち分ける合成魔獣を翻弄する。', reqStreak: 7, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 85, agility: 85 }, failLogs: { intelligence: 'ブレスの予備動作を見失った！【知力】を鍛えよう！', agility: '同時射撃をかわせなかった！【俊敏】を鍛えよう！' }, rewardGold: 370, rewardTitle: '多頭獣狩り' },
-
       { id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '滑空するワイバーンの急所を風を読んで射抜く。', reqStreak: 14, reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 }, failLogs: { agility: '照準が追いつかない！【俊敏】を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【知力】を研ぎ澄まそう！' }, rewardGold: 700, rewardTitle: '竜殺しの鷹目' },
       { id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲と高位障壁を纏う古代兵器。', reqStreak: 14, reqTypes: ['筋力', '知力'], reqStats: { strength: 130, intelligence: 130 }, failLogs: { strength: '装甲が硬すぎる！刃が弾かれた。【筋力】を鍛えよう！', intelligence: '障壁解除コードが解読できない！【知力】を極限まで高めよう！' }, rewardGold: 750, rewardTitle: '古代の解縛者' },
       { id: 'a3', rank: 'A', name: '禁忌の降霊儀式・絶対結界遮断', desc: '都市壊滅を狙う邪神降霊陣の詠唱を逆算し遮断する。', reqStreak: 14, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 145, flexibility: 125 }, failLogs: { intelligence: '術式反転についていけない！【知力】を極限まで高めよう！', flexibility: '魔力逆流を受け流せず気絶した！【柔軟】を鍛えよう！' }, rewardGold: 780, rewardTitle: '天理の大賢者' },
-
       { id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。', reqStreak: 30, reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 }, failLogs: { strength: 'パワーが足りない！【筋力】を極めよう！', agility: 'ブレスを回避できない！【俊敏】を極めよう！', flexibility: '衝撃波をいなせない！【柔軟】を極めよう！', intelligence: '結界の真理を見破れない！【知力】を極めよう！' }, rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者' },
       { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' }
     ];
@@ -1011,797 +1034,4 @@
                   </div>
                   <div className="flex space-x-1.5">
                     {[5, 10, 20, 30].map(num => (
-                      <button key={num} onClick={() => setInputValue(String(num))} className="flex-1 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs text-slate-300 hover:border-slate-500">
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center space-x-2 pt-1">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={inputValue}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === '' || /^\d+$/.test(val)) {
-                          setInputValue(val);
-                        }
-                      }}
-                      placeholder="0"
-                      className="w-24 bg-slate-950 border-2 border-slate-700 rounded-xl py-2 text-center text-xl font-scifi font-bold text-white focus:outline-none focus:border-cyan-400"
-                    />
-                    <button
-                      onClick={handleRecord}
-                      className={`flex-1 font-black py-3 rounded-xl text-xs font-scifi active:scale-95 transition ${themeBtn} ${themeShadow}`}
-                    >
-                      TRAIN COMPLETED
-                    </button>
-                  </div>
-                </div>
-
-                {/* 鍛錬メニュー選択 */}
-                <div className="space-y-1.5">
-                  <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択</div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {PRESETS.map(p => {
-                      const isSelected = selectedPreset.id === p.id;
-                      const idle = getIdleDays(p.category);
-
-                      return (
-                        <button
-                          key={p.id}
-                          onClick={() => { setSelectedPreset(p); setInputValue(String(p.defaultVal)); }}
-                          className={`p-2.5 rounded-xl border transition text-left flex flex-col justify-between relative ${
-                            isSelected 
-                              ? `bg-slate-900 border-${theme === 'cyan' ? 'cyan-400' : theme === 'purple' ? 'purple-400' : 'pink-400'} text-white ${themeShadow}`
-                              : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                          }`}
-                        >
-                          {idle >= 3 && (
-                            <span className="absolute -top-1.5 -right-1 text-[8px] bg-red-600 text-white font-bold px-1.5 py-0.5 rounded-full border border-red-300 shadow animate-pulse">
-                              {idle === 3 ? '鍛錬不足 予兆' : '鍛錬不足 -1/日'}
-                            </span>
-                          )}
-
-                          <span className="text-xs font-bold truncate text-white">{p.name}</span>
-                          <div className="mt-1.5 flex justify-between items-center text-[10px]">
-                            <span className="text-slate-400">{p.statName}</span>
-                            <span className={`font-mono font-bold ${themeText}`}>
-                              +{p.gain} ({p.stepVal}{p.unit})
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ② 冒険者ギルドタブ */}
-            {activeTab === 'guild' && (
-              <div className="space-y-3">
-                <div className="bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-950 border border-amber-500/50 rounded-2xl p-3 flex items-center space-x-3 shadow-xl">
-                  <GuildReceptionistPixel size={56} />
-                  <div className="space-y-0.5">
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-xs font-bold text-amber-300">ギルド職員 クレア</span>
-                      <span className="text-[9px] bg-amber-950/90 text-amber-400 border border-amber-500/30 px-1.5 rounded">受付窓口</span>
-                    </div>
-                    <p className="text-[10.5px] text-slate-300 leading-tight">
-                      「{player.name}さん、本日も鍛錬ご苦労さまです！無理のないよう怪我に気をつけて依頼に挑んでくださいね。」
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-slate-900/90 border border-amber-500/40 rounded-2xl p-3 space-y-2.5 shadow-xl">
-                  <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-                    <div>
-                      <span className="font-bold text-xs text-slate-100 tracking-wider">📜 本日のギルド掲示板</span>
-                      <span className="text-[9px] text-amber-300 ml-1.5 bg-amber-950/80 px-1 rounded border border-amber-500/30">日替わり公開中</span>
-                    </div>
-                    <div className="text-[10px] text-slate-400 flex items-center space-x-1">
-                      <span>適正:</span>
-                      <strong className="text-amber-300 font-scifi font-bold text-sm">Rank {overall.rank}</strong>
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-1 overflow-x-auto pb-1">
-                    {['F', 'E', 'D', 'C', 'B', 'A', 'S'].map(r => (
-                      <button
-                        key={r}
-                        onClick={() => setSelectedRankTab(r)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-scifi font-bold flex-1 text-center transition ${
-                          selectedRankTab === r ? 'bg-amber-500 text-slate-950 shadow-lg' : 'bg-slate-800/60 text-slate-400 border border-slate-700/60'
-                        }`}
-                      >
-                        {r}級
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="space-y-2 max-h-80 overflow-y-auto pr-0.5">
-                    {filteredQuests.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-slate-500">
-                        本日このランクの依頼は掲示されていません。<br/>
-                        明日の掲示板更新をお待ちください。
-                      </div>
-                    ) : (
-                      filteredQuests.map(q => {
-                        const isClear = dailyCleared.includes(q.id);
-
-                        return (
-                          <div key={q.id} className="p-3 rounded-xl border border-slate-800 bg-slate-950/70 space-y-2">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <div className="font-bold text-xs text-white flex items-center space-x-1.5">
-                                  <span>{q.name}</span>
-                                  {isClear && (
-                                    <span className="text-[9px] font-scifi font-black text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-400 tracking-wider">
-                                      CLEAR
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-[11px] text-slate-400 mt-0.5">{q.desc}</div>
-                              </div>
-                            </div>
-
-                            <div className="flex justify-between items-center pt-1.5 border-t border-slate-800/80 text-[11px]">
-                              <div className="text-slate-400">
-                                要求: <span className="text-cyan-300 font-bold">{q.reqTypes.join(' ＋ ')}</span>
-                                <span className="text-amber-300 font-bold ml-2">🪙 +{q.rewardGold}G</span>
-                              </div>
-                              <button
-                                onClick={() => handleAttemptQuest(q)}
-                                className={`px-3 py-1 rounded-lg font-bold text-xs active:scale-95 transition ${themeBtn}`}
-                              >
-                                挑戦する
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-          </main>
-
-          {/* 下部固定ナビゲーション */}
-          <div className="fixed bottom-3 left-0 right-0 max-w-md mx-auto px-3.5 z-30">
-            <div className="p-2 rounded-2xl bg-slate-950/95 border border-slate-800 backdrop-blur shadow-2xl flex items-center space-x-2">
-              <button
-                onClick={() => setActiveTab('train')}
-                className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition ${
-                  activeTab === 'train' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
-                }`}
-              >
-                <Icon name="dumbbell" className="w-4 h-4" />
-                <span>鍛錬メニュー</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('guild')}
-                className={`flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition ${
-                  activeTab === 'guild' ? `${themeBtn} ${themeShadow}` : 'bg-slate-900 text-slate-400 border border-slate-800'
-                }`}
-              >
-                <Icon name="scroll" className="w-4 h-4" />
-                <span>冒険者ギルド</span>
-              </button>
-
-              <button
-                onClick={() => setIsStatusOpen(true)}
-                className="px-4 py-2.5 rounded-xl font-scifi font-black text-xs tracking-wider bg-slate-900 border border-slate-700 text-amber-300 hover:text-white"
-              >
-                STATUS
-              </button>
-            </div>
-          </div>
-
-          {/* クレアの衰退予兆・心配＆応援モーダル */}
-          {decayWarningNotice && (
-            <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
-              <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-neon-gold text-center">
-                <div className="flex justify-center">
-                  <GuildReceptionistPixel size={64} />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] text-amber-400 font-bold bg-amber-950/90 px-2.5 py-0.5 rounded border border-amber-500/40">
-                    ギルド職員 クレア
-                  </span>
-                  <h3 className="font-bold text-sm text-white pt-1">
-                    {decayWarningNotice.warningList.length > 0 ? '能力の衰退予兆を検知しました' : '能力値が少し低下しました'}
-                  </h3>
-                </div>
-
-                <div className="bg-slate-950/85 p-3.5 rounded-2xl border border-slate-800 text-left space-y-2">
-                  {decayWarningNotice.warningList.length > 0 && (
-                    <p className="text-xs text-amber-200 leading-relaxed font-medium">
-                      「{player.name}さん！ 最近【<strong className="text-white font-bold">{decayWarningNotice.warningList.join('・')}</strong>】の鍛錬が3日間お休みのようです……！<br/><br/>
-                      少しお疲れが溜まっていたり、お忙しかったりしたのでしょうか……？ 無理は禁物ですが、せっかくここまで鍛え上げた能力が落ちてしまうのはとっても勿体ないです！<br/><br/>
-                      今日の鍛錬メニューに【鍛錬不足】の目印をつけておきましたので、できる種目を1つだけでも一緒にやってみませんか？ 私も全力で応援していますね！」
-                    </p>
-                  )}
-
-                  {decayWarningNotice.decayedList.length > 0 && (
-                    <div className="text-xs text-red-300 space-y-1 pt-1 border-t border-slate-800">
-                      <div className="font-bold text-red-400">【4日以上放置による能力減少】</div>
-                      {decayWarningNotice.decayedList.map((d, i) => (
-                        <div key={i} className="flex justify-between font-mono">
-                          <span>{d.name}:</span>
-                          <span>-{d.amount} (現在値: {d.current})</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <button 
-                  onClick={() => setDecayWarningNotice(null)} 
-                  className="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow hover:bg-amber-400 active:scale-95 transition"
-                >
-                  今日鍛錬する！
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 監査官ミレイの魔力ドーピング疑い・警告モーダル */}
-          {cheatWarningNotice && (
-            <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
-              <div className="bg-slate-900 border-2 border-red-500/80 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-2xl text-center">
-                <div className="flex justify-center">
-                  <GuildAuditorPixel size={64} />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] text-red-400 font-bold bg-red-950/90 px-2.5 py-0.5 rounded border border-red-500/50">
-                    ギルド監査官 ミレイ
-                  </span>
-                  <h3 className="font-bold text-sm text-white pt-1">魔力ドーピング疑い（監査警告）</h3>
-                </div>
-                <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-red-900/50 text-left">
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                    「ちょっと待ってください！<br/>
-                    たった今、人体の上限を超える異常な魔力反応（チート疑惑）を感知しました！<br/><br/>
-                    <strong className="text-red-400">{player.name}</strong>さん、禁忌のドーピング薬を飲んだりしていませんか……？<br/><br/>
-                    ギルド規約第7条に基づき、この記録は受理できません！ 正直に再申請してください！」
-                  </p>
-                </div>
-                <button 
-                  onClick={() => {
-                    setInputValue(String(selectedPreset.defaultVal));
-                    setCheatWarningNotice(null);
-                  }} 
-                  className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow transition active:scale-95"
-                >
-                  正直に再申請する
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 受付嬢クレアの案内モーダル */}
-          {blockedNotice && (
-            <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 animate-fade-in">
-              <div className="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-neon-gold text-center">
-                <div className="flex justify-center">
-                  <GuildReceptionistPixel size={64} />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-[10px] text-amber-400 font-bold bg-amber-950/80 px-2.5 py-0.5 rounded border border-amber-500/40">
-                    ギルド職員 クレア
-                  </span>
-                  <h3 className="font-bold text-sm text-white pt-1">{blockedNotice.title}</h3>
-                </div>
-                <div className="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-left">
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                    {blockedNotice.claireSpeech}
-                  </p>
-                </div>
-                <button 
-                  onClick={() => setBlockedNotice(null)} 
-                  className="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow hover:bg-amber-400 active:scale-95 transition"
-                >
-                  わかった
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 宿屋支払い・野宿独白モーダル */}
-          {innBillNotice && (
-            <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-5 animate-fade-in">
-              <div className={`bg-slate-900 border-2 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-2xl text-center ${
-                innBillNotice.isCamping ? 'border-red-500/80' : 'border-amber-500/60 shadow-neon-gold'
-              }`}>
-                <div className="flex justify-center">
-                  {innBillNotice.isCamping ? (
-                    <div className="w-16 h-16 rounded-2xl border-2 border-red-500/60 bg-slate-950 flex items-center justify-center overflow-hidden p-0.5 shadow-md">
-                      {player.customAvatar ? (
-                        <img src={player.customAvatar} alt="Player" className="w-full h-full object-cover rounded-xl" />
-                      ) : (
-                        <Icon name="user" className="w-8 h-8 text-slate-400" />
-                      )}
-                    </div>
-                  ) : (
-                    <React.Fragment>
-                      {innBillNotice.innId === 'cheap' && <InnOldManPixel size={64} />}
-                      {innBillNotice.innId === 'normal' && <InnGirlPixel size={64} />}
-                      {innBillNotice.innId === 'luxury' && <InnButlerPixel size={64} />}
-                    </React.Fragment>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <div className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-block border ${
-                    innBillNotice.isCamping 
-                      ? 'bg-red-950 text-red-300 border-red-500/40' 
-                      : 'bg-amber-950/80 text-amber-300 border-amber-500/30'
-                  }`}>
-                    {innBillNotice.innName}
-                  </div>
-                  <h3 className="font-bold text-sm text-white">{innBillNotice.keeperName}</h3>
-                </div>
-
-                <div className="bg-slate-950/85 p-3 rounded-2xl border border-slate-800 text-left">
-                  <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                    {innBillNotice.speech}
-                  </p>
-                </div>
-
-                <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 text-xs font-mono space-y-1">
-                  <div className="flex justify-between text-slate-400">
-                    <span>{innBillNotice.isCamping ? '野宿日数:' : '滞在期間:'}</span>
-                    <span className="text-white font-bold">{innBillNotice.days} 日分</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>{innBillNotice.isCamping ? '食糧調達費 (自炊・購入):' : 'お支払い (宿泊・食事):'}</span>
-                    <span className="text-red-400 font-bold">-{innBillNotice.cost} G</span>
-                  </div>
-                  <div className="flex justify-between border-t border-slate-800 pt-1 text-slate-300">
-                    <span>所持金残高:</span>
-                    <span className={`font-bold ${innBillNotice.remainingGold < 0 ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
-                      🪙 {innBillNotice.remainingGold} G
-                    </span>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => setInnBillNotice(null)} 
-                  className={`w-full py-2.5 rounded-xl font-bold text-xs shadow transition active:scale-95 ${
-                    innBillNotice.isCamping ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                  }`}
-                >
-                  {innBillNotice.isCamping ? '起き上がる（野宿継続）' : '出発する'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 判定結果モーダル */}
-          {questResultModal && (
-            <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-5">
-              <div className={`bg-slate-900 border-2 rounded-2xl p-5 max-w-sm w-full space-y-3 ${
-                questResultModal.success ? 'border-amber-400 shadow-neon-gold' : 'border-red-500/60'
-              }`}>
-                <div className="text-center">
-                  <div className="text-2xl">{questResultModal.success ? '⚔️' : '❌'}</div>
-                  <h3 className={`font-bold text-base ${questResultModal.success ? 'text-amber-300' : 'text-red-400'}`}>
-                    {questResultModal.success ? 'ミッション達成！' : 'ミッション失敗……！'}
-                  </h3>
-                  <div className="text-xs text-slate-300 font-bold mt-0.5">{questResultModal.quest.name}</div>
-                </div>
-
-                <div className="space-y-1 bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-xs font-mono">
-                  {questResultModal.details.map((d, i) => (
-                    <div key={i} className="flex justify-between items-center py-0.5">
-                      <span className="text-slate-300">{d.name}</span>
-                      <span className={d.passed ? 'text-emerald-400 font-bold' : 'text-red-400 font-bold'}>
-                        {d.current} / {d.required} ({d.passed ? 'クリア' : `あと ${d.diff} 不足`})
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {questResultModal.success ? (
-                  <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/30 text-xs text-amber-200">
-                    <div>🪙 報奨獲得: +{questResultModal.quest.rewardGold} G</div>
-                    {questResultModal.quest.rewardTitle && <div>🎖️ 新称号: 『{questResultModal.quest.rewardTitle}』</div>}
-                  </div>
-                ) : (
-                  <div className="p-2.5 rounded-xl bg-red-950/40 border border-red-500/30 text-xs text-red-200 space-y-1">
-                    {questResultModal.details.filter(d => !d.passed).map((d, i) => (
-                      <div key={i} className="text-[11px]">• {d.failAdvice}</div>
-                    ))}
-                  </div>
-                )}
-
-                <button onClick={() => setQuestResultModal(null)} className="w-full py-2.5 rounded-xl font-bold text-xs bg-slate-800 text-slate-200">
-                  閉じる
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ステータス全画面モーダル */}
-          {isStatusOpen && (
-            <div className="fixed inset-0 z-50 bg-black/95 flex flex-col p-5 overflow-y-auto">
-              <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                <span className={`font-scifi text-xs ${themeText}`}>STATUS INTERFACE</span>
-                <div className="flex items-center space-x-3">
-                  <button 
-                    onClick={() => setIsSettingsOpen(true)} 
-                    title="設定"
-                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition"
-                  >
-                    <Icon name="settings" className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => setIsStatusOpen(false)} className="text-slate-400 hover:text-white text-lg font-bold">✕</button>
-                </div>
-              </div>
-
-              <div className="mt-3 bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center space-y-2">
-                <div className="flex justify-center">
-                  <div 
-                    onClick={() => fileInputRef.current.click()}
-                    className={`w-28 h-28 rounded-2xl border-2 overflow-hidden bg-slate-950 flex items-center justify-center cursor-pointer ${themeBorder} ${themeShadow}`}
-                  >
-                    {player.customAvatar ? (
-                      <img src={player.customAvatar} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="text-center p-2">
-                        <Icon name="image-plus" className="w-7 h-7 text-slate-500 mx-auto" />
-                        <span className="text-[10px] text-slate-400 mt-1 block">画像を設定</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center space-x-1.5">
-                  <span className="font-scifi font-black text-xl text-white tracking-wide">{player.name}</span>
-                  <button 
-                    onClick={() => { setTempName(player.name); setIsNameEditOpen(true); }}
-                    className="p-1 rounded-lg bg-slate-800 text-slate-400 hover:text-cyan-300 transition"
-                    title="名前を変更"
-                  >
-                    <Icon name="edit" className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <div className="text-xs font-bold text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded-full inline-block border border-amber-500/40">
-                  【{currentJob.name}】 ({currentJob.tier})
-                </div>
-                <div className="text-[11px] text-slate-400">{currentJob.desc}</div>
-
-                <div className="text-[11px] text-slate-300 font-mono bg-slate-950/60 py-1 px-2.5 rounded-lg border border-slate-800 inline-block">
-                  🏨 滞在: <strong className="text-amber-300">{inn.name}</strong> ({inn.costPerDay} G/日)
-                </div>
-
-                <div className="flex justify-center items-center space-x-3 text-xs font-scifi font-bold pt-1">
-                  <span className="text-slate-400">総合Rank <strong className={`text-base ${themeText}`}>{overall.rank}</strong></span>
-                  <span className={player.gold < 0 ? 'text-red-400' : 'text-amber-300'}>🪙 {player.gold} G</span>
-                </div>
-              </div>
-
-              {/* 能力値バー */}
-              <div className="mt-3 space-y-2">
-                {[
-                  { key: 'strength', name: '筋力 (STR)', val: curStats.strength, color: 'text-red-400', bar: 'from-red-500 to-amber-500' },
-                  { key: 'agility', name: '俊敏 (AGI)', val: curStats.agility, color: 'text-cyan-400', bar: 'from-cyan-500 to-blue-500' },
-                  { key: 'flexibility', name: '柔軟 (FEX)', val: curStats.flexibility, color: 'text-emerald-400', bar: 'from-emerald-500 to-teal-500' },
-                  { key: 'intelligence', name: '知力 (INT)', val: curStats.intelligence, color: 'text-purple-400', bar: 'from-purple-500 to-indigo-500' },
-                ].map(s => {
-                  const info = getStatRankInfo(s.val);
-                  const pct = Math.min(100, Math.floor((s.val / info.cap) * 100));
-                  const idle = getIdleDays(s.key);
-
-                  return (
-                    <div key={s.name} className="bg-slate-900/80 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
-                      <div className="flex justify-between items-center text-xs">
-                        <div className="flex items-center space-x-1.5">
-                          <span className={`font-bold ${s.color}`}>{s.name}</span>
-                          {idle === 3 && (
-                            <span className="text-[9px] bg-amber-950 text-amber-300 border border-amber-500/50 px-1.5 py-0.5 rounded font-bold animate-pulse">
-                              ⚠️鍛錬不足 予兆 (3日)
-                            </span>
-                          )}
-                          {idle >= 4 && (
-                            <span className="text-[9px] bg-red-950 text-red-300 border border-red-500/50 px-1.5 py-0.5 rounded font-bold animate-pulse">
-                              ⚠️鍛錬不足で衰退中！ ({idle}日目/-1)
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-1.5 font-mono">
-                          <span className="text-white font-bold text-sm">{s.val} / {info.cap}</span>
-                          <span className="text-amber-300 font-bold font-scifi">[Rank {info.rank}]</span>
-                        </div>
-                      </div>
-                      <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
-                        <div className={`h-full rounded-full bg-gradient-to-r ${s.bar}`} style={{ width: `${pct}%` }}></div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <button onClick={() => setIsStatusOpen(false)} className="mt-5 w-full py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 font-scifi font-bold">
-                CLOSE
-              </button>
-            </div>
-          )}
-
-          {/* 名前変更モーダル */}
-          {isNameEditOpen && (
-            <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-5 animate-fade-in">
-              <div className="bg-slate-900 border border-cyan-500/50 rounded-2xl p-5 w-full max-w-xs space-y-4 shadow-neon-cyan">
-                <div className="text-center">
-                  <div className="font-scifi text-sm font-bold text-cyan-300">CHANGE NAME</div>
-                  <p className="text-[11px] text-slate-400 mt-1">冒険者の名前を入力してください</p>
-                </div>
-                <input 
-                  type="text" 
-                  maxLength="12"
-                  value={tempName} 
-                  onChange={(e) => setTempName(e.target.value)}
-                  placeholder="名前を入力"
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center text-sm font-bold text-white focus:outline-none focus:border-cyan-400"
-                />
-                <div className="flex space-x-2">
-                  <button onClick={() => setIsNameEditOpen(false)} className="flex-1 py-2 rounded-xl bg-slate-800 text-xs font-bold text-slate-300 hover:bg-slate-700">
-                    キャンセル
-                  </button>
-                  <button onClick={handleSaveName} className="flex-1 py-2 rounded-xl bg-cyan-500 text-xs font-bold text-slate-950 shadow">
-                    決定
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 設定モーダル */}
-          {isSettingsOpen && (
-            <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6">
-              <div className="bg-slate-900 border border-slate-700 rounded-2xl p-5 max-w-xs w-full space-y-4 shadow-2xl">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-                  <span className="font-bold text-sm text-white flex items-center space-x-1.5">
-                    <Icon name="settings" className="w-4 h-4 text-slate-400" />
-                    <span>環境設定</span>
-                  </span>
-                  <button onClick={() => setIsSettingsOpen(false)} className="text-slate-400 hover:text-white">✕</button>
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  <div className="text-slate-400">開発者・デバッグ管理</div>
-                  <button 
-                    onClick={() => {
-                      setIsSettingsOpen(false);
-                      setIsCheatAuthOpen(true);
-                    }}
-                    className="w-full py-2.5 px-3 rounded-xl bg-amber-950/80 hover:bg-amber-900/80 border border-amber-500/60 text-amber-300 font-bold text-xs flex items-center justify-center space-x-1.5 transition shadow"
-                  >
-                    <Icon name="zap" className="w-4 h-4 text-amber-400" />
-                    <span>チート（リミッター解除）</span>
-                  </button>
-
-                  <div className="text-slate-400 pt-2">データ管理</div>
-                  <button 
-                    onClick={() => setIsResetConfirmOpen(true)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-red-500/50 text-red-300 font-bold text-xs flex items-center justify-center space-x-1.5 transition"
-                  >
-                    <Icon name="trash" className="w-4 h-4" />
-                    <span>データを初期化（リセット）</span>
-                  </button>
-                </div>
-
-                <button 
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="w-full py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700"
-                >
-                  閉じる
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* チート認証モーダル */}
-          {isCheatAuthOpen && (
-            <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
-              <div className="bg-slate-900 border-2 border-amber-500/70 rounded-3xl p-5 max-w-xs w-full space-y-4 shadow-2xl text-center">
-                <div className="w-12 h-12 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50 flex items-center justify-center mx-auto">
-                  <Icon name="key" className="w-6 h-6" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="font-bold text-sm text-white">開発者認証コード入力</h3>
-                  <p className="text-[11px] text-slate-400">暗証番号を入力してリミッターを解除してください</p>
-                </div>
-
-                <input 
-                  type="password" 
-                  maxLength="8"
-                  value={cheatPassword} 
-                  onChange={(e) => {
-                    setCheatPassword(e.target.value);
-                    setCheatError(false);
-                  }}
-                  placeholder="Password"
-                  className={`w-full bg-slate-950 border-2 rounded-xl py-2 px-3 text-center text-lg font-mono font-bold text-white focus:outline-none ${
-                    cheatError ? 'border-red-500 animate-shake' : 'border-slate-700 focus:border-amber-400'
-                  }`}
-                />
-                {cheatError && (
-                  <div className="text-[11px] text-red-400 font-bold">認証コードが違います</div>
-                )}
-
-                <div className="flex space-x-2 pt-1">
-                  <button 
-                    onClick={() => {
-                      setIsCheatAuthOpen(false);
-                      setCheatPassword('');
-                      setCheatError(false);
-                    }}
-                    className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs"
-                  >
-                    キャンセル
-                  </button>
-                  <button 
-                    onClick={handleVerifyCheatPassword}
-                    className="flex-1 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow hover:bg-amber-400"
-                  >
-                    解錠
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 開発者用チート操作パネル */}
-          {isCheatPanelOpen && (
-            <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
-              <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 max-w-sm w-full space-y-3.5 shadow-neon-gold">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-2">
-                  <div className="flex items-center space-x-1.5 text-amber-400 font-bold text-sm">
-                    <Icon name="zap" className="w-4 h-4" />
-                    <span>開発者用ステータス操作</span>
-                  </div>
-                  <button onClick={() => setIsCheatPanelOpen(false)} className="text-slate-400 hover:text-white">✕</button>
-                </div>
-
-                <div className="space-y-2.5 text-xs">
-                  {/* 各ステータス操作 */}
-                  {[
-                    { key: 'strength', name: '筋力 (STR)', val: curStats.strength, color: 'text-red-400' },
-                    { key: 'agility', name: '俊敏 (AGI)', val: curStats.agility, color: 'text-cyan-400' },
-                    { key: 'flexibility', name: '柔軟 (FEX)', val: curStats.flexibility, color: 'text-emerald-400' },
-                    { key: 'intelligence', name: '知力 (INT)', val: curStats.intelligence, color: 'text-purple-400' },
-                  ].map(s => (
-                    <div key={s.key} className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 flex justify-between items-center">
-                      <div>
-                        <span className={`font-bold ${s.color}`}>{s.name}</span>
-                        <span className="text-white font-mono font-bold ml-2">{s.val}</span>
-                      </div>
-                      <div className="flex space-x-1">
-                        <button onClick={() => applyCheatStat(s.key, 10)} className="px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-bold border border-slate-700 hover:bg-slate-700">+10</button>
-                        <button onClick={() => applyCheatStat(s.key, 50)} className="px-2 py-0.5 rounded bg-slate-800 text-amber-400 font-bold border border-slate-700 hover:bg-slate-700">+50</button>
-                        <button onClick={() => applyCheatStat(s.key, 0)} className="px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 hover:bg-red-900">0</button>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* 勇者テストボタン */}
-                  <div className="bg-slate-950/80 p-2 rounded-xl border border-amber-500/40 flex justify-between items-center">
-                    <div>
-                      <span className="font-bold text-amber-400">勇者クラス検証</span>
-                      <div className="text-[10px] text-slate-400">全4ステ均等セット</div>
-                    </div>
-                    <div className="flex space-x-1">
-                      <button onClick={() => applyCheatHeroStats(50)} className="px-2 py-1 rounded bg-amber-500 text-slate-950 font-bold hover:bg-amber-400">勇者(50)</button>
-                      <button onClick={() => applyCheatHeroStats(130)} className="px-2 py-1 rounded bg-cyan-400 text-slate-950 font-bold hover:bg-cyan-300">真・勇者(130)</button>
-                    </div>
-                  </div>
-
-                  {/* 野宿テストボタン */}
-                  <div className="bg-slate-950/80 p-2 rounded-xl border border-red-500/40 flex justify-between items-center">
-                    <div>
-                      <span className="font-bold text-red-300">野宿状態テスト</span>
-                      <div className="text-[10px] text-slate-400">現在: {player.isCamping ? '【野宿中】' : '【通常宿泊】'}</div>
-                    </div>
-                    <div className="flex space-x-1">
-                      <button 
-                        onClick={toggleCheatCamping} 
-                        className={`px-2 py-1 rounded font-bold transition ${
-                          player.isCamping ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
-                        }`}
-                      >
-                        {player.isCamping ? '野宿解除(+50G)' : '野宿状態に切替'}
-                      </button>
-                      <button 
-                        onClick={triggerCampingNoticeTest} 
-                        className="px-2 py-1 rounded bg-slate-800 text-amber-300 border border-slate-700 font-bold hover:bg-slate-700"
-                        title="野宿独白モーダルを即座に開く"
-                      >
-                        精算画面呼出
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* ゴールド＆信用操作 */}
-                  <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 flex justify-between items-center">
-                    <div>
-                      <span className="font-bold text-amber-300">所持金</span>
-                      <span className="text-white font-mono font-bold ml-2">{player.gold} G</span>
-                    </div>
-                    <button onClick={() => applyCheatGold(1000)} className="px-3 py-1 rounded bg-amber-500 text-slate-950 font-bold shadow">
-                      +1000 G
-                    </button>
-                  </div>
-
-                  <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 flex justify-between items-center">
-                    <div>
-                      <span className="font-bold text-cyan-300">鍛錬継続（信用）</span>
-                      <span className="text-white font-mono font-bold ml-2">{player.streakCount || 1}日</span>
-                    </div>
-                    <button onClick={() => applyCheatStreak(7)} className="px-3 py-1 rounded bg-cyan-500 text-slate-950 font-bold shadow">
-                      +7日
-                    </button>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => setIsCheatPanelOpen(false)}
-                  className="w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow hover:bg-amber-400"
-                >
-                  完了して戻る
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 初期化確認モーダル */}
-          {isResetConfirmOpen && (
-            <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6">
-              <div className="bg-slate-900 border-2 border-red-500/80 rounded-2xl p-5 max-w-xs w-full text-center space-y-3.5 shadow-2xl animate-fade-in">
-                <div className="w-12 h-12 rounded-full bg-red-500/20 text-red-400 border border-red-500/40 flex items-center justify-center mx-auto text-2xl font-bold">
-                  !
-                </div>
-                <h3 className="font-bold text-sm text-white">本当に初期化しますか？</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  鍛錬したステータス、所持ゴールド、獲得した称号など、<br/>
-                  <strong className="text-red-400">すべての記録が消去され初期状態（見習い冒険者）に戻ります。</strong><br/>
-                  この操作は元に戻せません。
-                </p>
-
-                <div className="flex space-x-2 pt-1">
-                  <button 
-                    onClick={() => setIsResetConfirmOpen(false)}
-                    className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700"
-                  >
-                    キャンセル
-                  </button>
-                  <button 
-                    onClick={executeReset}
-                    className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-lg shadow-red-900/50"
-                  >
-                    初期化を実行
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-        </div>
-      );
-    }
-
-    const rootElement = document.getElementById('root');
-    if (ReactDOM.createRoot) {
-      const root = ReactDOM.createRoot(rootElement);
-      root.render(<App/>);
-    } else {
-      ReactDOM.render(<App/>, rootElement);
-    }
-  </script>
-</body>
-</html>
+                      <button key={num} onClick={() => setInputValue(String(
