@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>RPG Fitness: Status Quest</title>
-  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-  <script src="[https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js](https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js)"></script>
-  <script crossorigin src="[https://unpkg.com/react@18/umd/react.production.min.js](https://unpkg.com/react@18/umd/react.production.min.js)"></script>
-  <script crossorigin src="[https://unpkg.com/react-dom@18/umd/react-dom.production.min.js](https://unpkg.com/react-dom@18/umd/react-dom.production.min.js)"></script>
-  <script src="[https://unpkg.com/@babel/standalone/babel.min.js](https://unpkg.com/@babel/standalone/babel.min.js)"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -34,7 +34,7 @@
     }
   </script>
   <style>
-    @import url('[https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Orbitron:wght@700;900&display=swap](https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Orbitron:wght@700;900&display=swap)');
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Orbitron:wght@700;900&display=swap');
     body {
       font-family: 'M PLUS Rounded 1c', sans-serif;
       background-color: #070913;
@@ -364,7 +364,6 @@
         };
       }
     }
-
     const ALL_GUILD_QUESTS = [
       { id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。', reqStreak: 0, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 }, failLogs: { intelligence: '毒草と見分けがつかなかった。【知力】を鍛えよう！', flexibility: '足腰が硬く滑落した。【柔軟】を鍛えよう！' }, rewardGold: 8, rewardTitle: '草原の採取者' },
       { id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。', reqStreak: 0, reqTypes: ['筋力'], reqStats: { strength: 8 }, failLogs: { strength: '腕力が足りず泥を引き上げきれなかった。【筋力】を鍛えよう！' }, rewardGold: 10, rewardTitle: '奉仕の掃除人' },
@@ -389,6 +388,7 @@
       { id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。', reqStreak: 30, reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 }, failLogs: { strength: 'パワーが足りない！【筋力】を極めよう！', agility: 'ブレスを回避できない！【俊敏】を極めよう！', flexibility: '衝撃波をいなせない！【柔軟】を極めよう！', intelligence: '結界の真理を見破れない！【知力】を極めよう！' }, rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者' },
       { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' }
     ];
+
     function getDailyAvailableQuests(dayTimestamp) {
       const date = new Date(dayTimestamp);
       const dayNum = Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
@@ -483,6 +483,7 @@
       const currentJob = determineJob(player.stats);
       const inn = getInnInfo(currentJob.tier);
 
+      // 日付変更チェック（野宿時は自身の独白＆食費のみ）
       useEffect(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1655,7 +1656,6 @@
                 </div>
 
                 <div className="space-y-2.5 text-xs">
-                  {/* 各ステータス操作 */}
                   {[
                     { key: 'strength', name: '筋力 (STR)', val: curStats.strength, color: 'text-red-400' },
                     { key: 'agility', name: '俊敏 (AGI)', val: curStats.agility, color: 'text-cyan-400' },
