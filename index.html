@@ -59,7 +59,7 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // --- 内蔵SVGアイコン（外部ライブラリ依存ゼロ） ---
+    // --- 内蔵SVGアイコン ---
     function AppIcon({ name, className = "w-4 h-4" }) {
       switch (name) {
         case 'dumbbell':
@@ -121,7 +121,7 @@
       }
     }
 
-    // ドット絵：ギルド受付嬢クレア
+    // ドット絵：クレア
     function GuildReceptionistPixel({ size = 52 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40">
@@ -147,7 +147,7 @@
       );
     }
 
-    // ドット絵：ギルド監査官ミレイ
+    // ドット絵：ミレイ
     function GuildAuditorPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60">
@@ -172,7 +172,7 @@
       );
     }
 
-    // ドット絵：古びた安宿（バルガス）
+    // ドット絵：バルガス
     function InnOldManPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-800">
@@ -191,7 +191,7 @@
       );
     }
 
-    // ドット絵：普通の宿屋（エマ）
+    // ドット絵：エマ
     function InnGirlPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-emerald-500/50">
@@ -211,7 +211,7 @@
       );
     }
 
-    // ドット絵：高級宿屋（セバスチャン）
+    // ドット絵：セバスチャン
     function InnButlerPixel({ size = 56 }) {
       return (
         <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-purple-500/50">
@@ -377,17 +377,17 @@
       { id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。', reqStreak: 0, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 }, failLogs: { agility: '走るスピードが遅く見失った。【俊敏】を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 10, rewardTitle: '迷い猫の救い手' },
       { id: 'f4', rank: 'F', name: 'ギルド書庫の羊皮紙整理', desc: '乱雑に積まれた古い文献を読み解き仕分ける。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 8 }, failLogs: { intelligence: '古代文字が読めず整理が進まなかった。【知力】を鍛えよう！' }, rewardGold: 9, rewardTitle: '書庫の見習い手' },
       { id: 'e1', rank: 'E', name: 'ジャイアントラット駆除', desc: '食料庫を荒らす巨大ネズミの群れを仕留める。', reqStreak: 0, reqTypes: ['俊敏'], reqStats: { agility: 15 }, failLogs: { agility: '踏み込みが遅い！翻弄された。【俊敏】を鍛えよう！' }, rewardGold: 20, rewardTitle: '害獣ハンター' },
-      { id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。', reqStreak: 0, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 }, failLogs: { strength: 'パワー負け！弾き飛ばされた。【筋力】を鍛えよう！' }, rewardGold: 25, rewardTitle: '畑の守護者' },
+      { id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。', reqStreak: 0, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 }, failLogs: { strength: 'パワー負け！弾き飛ばされた。【筋力】を鍛えよう！', flexibility: '衝撃を体幹で受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 25, rewardTitle: '畑の守護者' },
       { id: 'e3', rank: 'E', name: '初級魔法スクロールの解読', desc: '魔力暴走を起こした巻物の呪文式を冷静に分析する。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 18 }, failLogs: { intelligence: '呪文式の解読が追いつかず暴走した！【知力】を鍛えよう！' }, rewardGold: 24, rewardTitle: '魔導の書生' },
       { id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。', reqStreak: 3, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 }, failLogs: { strength: '打ち込みが浅く倒しきれなかった。【筋力】を鍛えよう！', agility: 'ステップについていけなかった。【俊敏】を鍛えよう！' }, rewardGold: 60, rewardTitle: '斥候スレイヤー' },
-      { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！', flexibility: '怪異の衝撃波を受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
+      { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
       { id: 'd3', rank: 'D', name: '盗賊団の暗号通信解読', desc: '街道を脅かす盗賊の密書を解析し奇襲を防ぐ。', reqStreak: 3, reqTypes: ['知力'], reqStats: { intelligence: 35 }, failLogs: { intelligence: '暗号の法則を見抜けなかった！【知力】を鍛えよう！' }, rewardGold: 70, rewardTitle: '見抜く眼' },
       { id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。', reqStreak: 5, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 }, failLogs: { strength: '重い棍棒に力負けし弾かれた！【筋力】を鍛えよう！', flexibility: '打撃を受け止めきれなかった！【柔軟】を鍛えよう！' }, rewardGold: 150, rewardTitle: '豪傑の武芸者' },
       { id: 'c2', rank: 'C', name: '幻影の魔術師の結界破り', desc: '迷いの森に展開された偽りの幻術結界の核を看破する。', reqStreak: 5, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 60, agility: 50 }, failLogs: { intelligence: '幻術を見抜けず道に迷った！【知力】を鍛えよう！', agility: '歪みへ飛び込む瞬発力が足りなかった。【俊敏】を鍛えよう！' }, rewardGold: 160, rewardTitle: '幻影を暴く者' },
       { id: 'c3', rank: 'C', name: '古代錬金ゴーレムの暴走停止', desc: '暴走する泥人形の魔導回路を解析し弱点を突く。', reqStreak: 5, reqTypes: ['知力', '筋力'], reqStats: { intelligence: 55, strength: 50 }, failLogs: { intelligence: '魔力回路の急所が見抜けなかった！【知力】を鍛えよう！', strength: '打ち込むパワーが足りない！【筋力】を鍛えよう！' }, rewardGold: 165, rewardTitle: '錬金の解体士' },
       { id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '砦を半壊させる巨大牛頭魔獣との決闘。', reqStreak: 7, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 }, failLogs: { strength: '破壊力が桁違いだ！押し切られた。【筋力】を鍛えよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【柔軟】を鍛えよう！' }, rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー' },
       { id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王との知恵比べ。', reqStreak: 7, reqTypes: ['知力'], reqStats: { intelligence: 95 }, failLogs: { intelligence: '術式の展開速度で圧倒された！【知力】を極限まで高めよう！' }, rewardGold: 380, rewardTitle: '深淵の解読者' },
-      { id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する古代遺跡の大扉を開錠する。', reqStreak: 7, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 }, failLogs: { intelligence: '星盤の方程式が読み解けない！【知力】を鍛えよう！', flexibility: '狭隘な仕掛けの奥へ滑り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 360, rewardTitle: '星辰の解読士' },
+      { id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する古代遺跡の大扉を開錠する。', reqStreak: 7, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 }, failLogs: { intelligence: '星盤の方程式が読み解けない！【知力】を鍛えよう！' }, rewardGold: 360, rewardTitle: '星辰の解読士' },
       { id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '複数属性のブレスを撃ち分ける合成魔獣を翻弄する。', reqStreak: 7, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 85, agility: 85 }, failLogs: { intelligence: 'ブレスの予備動作を見失った！【知力】を鍛えよう！', agility: '同時射撃をかわせなかった！【俊敏】を鍛えよう！' }, rewardGold: 370, rewardTitle: '多頭獣狩り' },
       { id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '滑空するワイバーンの急所を風を読んで射抜く。', reqStreak: 14, reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 }, failLogs: { agility: '照準が追いつかない！【俊敏】を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【知力】を研ぎ澄まそう！' }, rewardGold: 700, rewardTitle: '竜殺しの鷹目' },
       { id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲と高位障壁を纏う古代兵器。', reqStreak: 14, reqTypes: ['筋力', '知力'], reqStats: { strength: 130, intelligence: 130 }, failLogs: { strength: '装甲が硬すぎる！刃が弾かれた。【筋力】を鍛えよう！', intelligence: '障壁解除コードが解読できない！【知力】を極限まで高めよう！' }, rewardGold: 750, rewardTitle: '古代の解縛者' },
@@ -395,7 +395,6 @@
       { id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。', reqStreak: 30, reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 }, failLogs: { strength: 'パワーが足りない！【筋力】を極めよう！', agility: 'ブレスを回避できない！【俊敏】を極めよう！', flexibility: '衝撃波をいなせない！【柔軟】を極めよう！', intelligence: '結界の真理を見破れない！【知力】を極めよう！' }, rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者' },
       { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' }
     ];
-
     function getDailyAvailableQuests(dayTimestamp) {
       const date = new Date(dayTimestamp);
       const dayNum = Math.floor(date.getTime() / (1000 * 60 * 60 * 24));
@@ -443,7 +442,6 @@
     };
 
     function App() {
-      // データの安全復元（破損データがあっても確実に初期化マージ）
       const [player, setPlayer] = useState(() => {
         try {
           const saved = localStorage.getItem('rpg_fitness_player_guild_v19');
@@ -457,7 +455,7 @@
             };
           }
         } catch (e) {
-          console.error("Local data load failed:", e);
+          console.error("Data load failed:", e);
         }
         return INITIAL_PLAYER_DATA;
       });
@@ -491,7 +489,6 @@
       const currentJob = determineJob(player.stats);
       const inn = getInnInfo(currentJob.tier);
 
-      // 日付変更チェック
       useEffect(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -864,7 +861,6 @@
 
       return (
         <div className="max-w-md mx-auto min-h-screen relative flex flex-col justify-between pb-36 bg-[#090c16] border-x border-slate-800 shadow-2xl">
-          
           <input type="file" accept="image/*" ref={fileInputRef} onChange={handleImageUpload} className="hidden" />
 
           {/* ヘッダー */}
@@ -921,8 +917,6 @@
 
           {/* メイン画面 */}
           <main className="p-3.5 flex-1 space-y-3">
-            
-            {/* ステータス概要 */}
             <div className={`rounded-2xl border bg-gradient-to-b from-[#141829] to-[#0d101e] p-3 shadow-lg ${themeBorder} space-y-2`}>
               <div className="flex justify-between items-center">
                 <span className="text-[11px] text-amber-300 font-bold bg-black/40 px-2.5 py-0.5 rounded-full border border-amber-400/30">
@@ -963,7 +957,6 @@
             {/* ① 鍛錬タブ */}
             {activeTab === 'train' && (
               <div className="space-y-3">
-                {/* クエストタイマー */}
                 <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 flex items-center justify-between shadow-lg">
                   <div>
                     <div className="text-[10px] text-slate-400 font-bold">QUEST TIMER</div>
@@ -996,7 +989,6 @@
                   </div>
                 </div>
 
-                {/* 記録入力欄 */}
                 <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-200 font-bold text-sm">{selectedPreset.name} ({selectedPreset.unit})</span>
@@ -1034,7 +1026,6 @@
                   </div>
                 </div>
 
-                {/* 鍛錬メニュー選択 */}
                 <div className="space-y-1.5">
                   <div className="text-[11px] font-bold text-slate-400 px-1">鍛錬メニュー選択</div>
                   <div className="grid grid-cols-3 gap-2">
@@ -1057,7 +1048,6 @@
                               {idle === 3 ? '鍛錬不足 予兆' : '鍛錬不足 -1/日'}
                             </span>
                           )}
-
                           <span className="text-xs font-bold truncate text-white">{p.name}</span>
                           <div className="mt-1.5 flex justify-between items-center text-[10px]">
                             <span className="text-slate-400">{p.statName}</span>
@@ -1127,18 +1117,16 @@
 
                         return (
                           <div key={q.id} className="p-3 rounded-xl border border-slate-800 bg-slate-950/70 space-y-2">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <div className="font-bold text-xs text-white flex items-center space-x-1.5">
-                                  <span>{q.name}</span>
-                                  {isClear && (
-                                    <span className="text-[9px] font-scifi font-black text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-400 tracking-wider">
-                                      CLEAR
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-[11px] text-slate-400 mt-0.5">{q.desc}</div>
+                            <div>
+                              <div className="font-bold text-xs text-white flex items-center space-x-1.5">
+                                <span>{q.name}</span>
+                                {isClear && (
+                                  <span className="text-[9px] font-scifi font-black text-amber-300 bg-amber-950/80 px-1.5 py-0.5 rounded border border-amber-400 tracking-wider">
+                                    CLEAR
+                                  </span>
+                                )}
                               </div>
+                              <div className="text-[11px] text-slate-400 mt-0.5">{q.desc}</div>
                             </div>
 
                             <div className="flex justify-between items-center pt-1.5 border-t border-slate-800/80 text-[11px]">
@@ -1161,7 +1149,6 @@
                 </div>
               </div>
             )}
-
           </main>
 
           {/* 下部固定ナビゲーション */}
@@ -1196,7 +1183,7 @@
             </div>
           </div>
 
-          {/* クレアの衰退予兆・心配＆応援モーダル */}
+          {/* クレアの衰退予兆モーダル */}
           {decayWarningNotice && (
             <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
               <div className="bg-slate-900 border-2 border-amber-400 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-neon-gold text-center">
@@ -1244,7 +1231,7 @@
             </div>
           )}
 
-          {/* 監査官ミレイの魔力ドーピング疑い・警告モーダル */}
+          {/* 監査官ミレイの警告モーダル */}
           {cheatWarningNotice && (
             <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-5 animate-fade-in">
               <div className="bg-slate-900 border-2 border-red-500/80 rounded-3xl p-5 max-w-xs w-full space-y-3.5 shadow-2xl text-center">
@@ -1673,7 +1660,6 @@
                 </div>
 
                 <div className="space-y-2.5 text-xs">
-                  {/* 各ステータス操作 */}
                   {[
                     { key: 'strength', name: '筋力 (STR)', val: curStats.strength, color: 'text-red-400' },
                     { key: 'agility', name: '俊敏 (AGI)', val: curStats.agility, color: 'text-cyan-400' },
@@ -1693,7 +1679,6 @@
                     </div>
                   ))}
 
-                  {/* 勇者テストボタン */}
                   <div className="bg-slate-950/80 p-2 rounded-xl border border-amber-500/40 flex justify-between items-center">
                     <div>
                       <span className="font-bold text-amber-400">勇者クラス検証</span>
@@ -1705,7 +1690,6 @@
                     </div>
                   </div>
 
-                  {/* 野宿テストボタン */}
                   <div className="bg-slate-950/80 p-2 rounded-xl border border-red-500/40 flex justify-between items-center">
                     <div>
                       <span className="font-bold text-red-300">野宿状態テスト</span>
@@ -1730,7 +1714,6 @@
                     </div>
                   </div>
 
-                  {/* ゴールド＆信用操作 */}
                   <div className="bg-slate-950/80 p-2 rounded-xl border border-slate-800 flex justify-between items-center">
                     <div>
                       <span className="font-bold text-amber-300">所持金</span>
@@ -1798,7 +1781,6 @@
       );
     }
 
-    // ブラウザ完全互換のReactDOM.renderに統一
     ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
