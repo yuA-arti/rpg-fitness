@@ -1,4 +1,369 @@
-// 全4ステータスが偏りなく登場するよう再設計したクエストデータ（各能力均等配分）
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>RPG Fitness: Status Quest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              black: '#070913',
+              card: '#121829',
+              cyan: '#00f0ff',
+              purple: '#b026ff',
+              pink: '#ff4d94',
+              gold: '#ffd166',
+            }
+          },
+          boxShadow: {
+            'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.4)',
+            'neon-purple': '0 0 15px rgba(176, 38, 255, 0.45)',
+            'neon-pink': '0 0 15px rgba(255, 77, 148, 0.4)',
+            'neon-gold': '0 0 20px rgba(255, 209, 102, 0.5)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Orbitron:wght@700;900&display=swap');
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      background-color: #070913;
+      color: #f1f5f9;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .font-scifi {
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.08em;
+    }
+    .pixelated {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-[#070913]">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    function AppIcon({ name, className = "w-4 h-4" }) {
+      switch (name) {
+        case 'dumbbell':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>
+            </svg>
+          );
+        case 'scroll':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h11a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2Z"/><path d="M4 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"/>
+            </svg>
+          );
+        case 'settings':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          );
+        case 'zap':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          );
+        case 'key':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>
+            </svg>
+          );
+        case 'trash':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+            </svg>
+          );
+        case 'edit':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+            </svg>
+          );
+        case 'image-plus':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" y1="5" x2="22" y2="5"/><line x1="19" y1="2" x2="19" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+            </svg>
+          );
+        case 'user':
+          return (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          );
+        default:
+          return null;
+      }
+    }
+
+    function GuildReceptionistPixel({ size = 52 }) {
+      return (
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40">
+          <rect x="5" y="1" width="6" height="2" fill="#0284c7" />
+          <rect x="7" y="0" width="2" height="1" fill="#f59e0b" />
+          <rect x="4" y="3" width="8" height="2" fill="#92400e" />
+          <rect x="3" y="5" width="2" height="5" fill="#92400e" />
+          <rect x="11" y="5" width="2" height="5" fill="#92400e" />
+          <rect x="5" y="5" width="6" height="5" fill="#fed7aa" />
+          <rect x="6" y="6" width="1" height="2" fill="#0f172a" />
+          <rect x="9" y="6" width="1" height="2" fill="#0f172a" />
+          <rect x="5" y="8" width="1" height="1" fill="#f43f5e" />
+          <rect x="10" y="8" width="1" height="1" fill="#f43f5e" />
+          <rect x="7" y="8" width="2" height="1" fill="#ea580c" />
+          <rect x="5" y="10" width="6" height="2" fill="#ffffff" />
+          <rect x="7" y="10" width="2" height="2" fill="#e11d48" />
+          <rect x="4" y="12" width="8" height="3" fill="#0369a1" />
+          <rect x="6" y="12" width="4" height="3" fill="#f8fafc" />
+          <rect x="7" y="13" width="2" height="1" fill="#f59e0b" />
+          <rect x="3" y="13" width="1" height="2" fill="#fed7aa" />
+          <rect x="12" y="13" width="1" height="2" fill="#fed7aa" />
+        </svg>
+      );
+    }
+
+    function GuildAuditorPixel({ size = 56 }) {
+      return (
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60">
+          <rect x="5" y="1" width="6" height="2" fill="#1e1b4b" />
+          <rect x="4" y="3" width="8" height="2" fill="#cbd5e1" />
+          <rect x="3" y="5" width="2" height="5" fill="#cbd5e1" />
+          <rect x="11" y="5" width="2" height="5" fill="#cbd5e1" />
+          <rect x="5" y="5" width="6" height="5" fill="#fed7aa" />
+          <rect x="5" y="6" width="3" height="2" stroke="#dc2626" strokeWidth="0.6" fill="none" />
+          <rect x="8" y="6" width="3" height="2" stroke="#dc2626" strokeWidth="0.6" fill="none" />
+          <rect x="6" y="6" width="1" height="1" fill="#2563eb" />
+          <rect x="9" y="6" width="1" height="1" fill="#2563eb" />
+          <rect x="7" y="8" width="2" height="1" fill="#991b1b" />
+          <rect x="5" y="10" width="6" height="2" fill="#0f172a" />
+          <rect x="7" y="10" width="2" height="1" fill="#e2e8f0" />
+          <rect x="7" y="11" width="2" height="1" fill="#eab308" />
+          <rect x="4" y="12" width="8" height="3" fill="#1e1b4b" />
+          <rect x="6" y="12" width="4" height="3" fill="#312e81" />
+          <rect x="3" y="13" width="1" height="2" fill="#fed7aa" />
+          <rect x="12" y="13" width="1" height="2" fill="#fed7aa" />
+        </svg>
+      );
+    }
+
+    function InnOldManPixel({ size = 56 }) {
+      return (
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-800">
+          <rect x="4" y="2" width="8" height="2" fill="#78350f" />
+          <rect x="3" y="4" width="10" height="2" fill="#b45309" />
+          <rect x="4" y="5" width="8" height="6" fill="#fed7aa" />
+          <rect x="5" y="5" width="2" height="1" fill="#451a03" />
+          <rect x="9" y="5" width="2" height="1" fill="#451a03" />
+          <rect x="5" y="6" width="1" height="1" fill="#0f172a" />
+          <rect x="10" y="6" width="1" height="1" fill="#0f172a" />
+          <rect x="5" y="8" width="6" height="3" fill="#78350f" />
+          <rect x="7" y="8" width="2" height="1" fill="#451a03" />
+          <rect x="4" y="11" width="8" height="4" fill="#57534e" />
+          <rect x="6" y="11" width="4" height="4" fill="#d6d3d1" />
+        </svg>
+      );
+    }
+
+    function InnGirlPixel({ size = 56 }) {
+      return (
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-emerald-500/50">
+          <rect x="4" y="1" width="8" height="3" fill="#facc15" />
+          <rect x="3" y="4" width="2" height="4" fill="#facc15" />
+          <rect x="11" y="3" width="3" height="5" fill="#facc15" />
+          <rect x="4" y="2" width="7" height="1" fill="#10b981" />
+          <rect x="5" y="4" width="6" height="6" fill="#fef08a" />
+          <rect x="6" y="5" width="1" height="2" fill="#065f46" />
+          <rect x="9" y="5" width="1" height="2" fill="#065f46" />
+          <rect x="5" y="7" width="1" height="1" fill="#f43f5e" />
+          <rect x="10" y="7" width="1" height="1" fill="#f43f5e" />
+          <rect x="7" y="8" width="2" height="1" fill="#ea580c" />
+          <rect x="5" y="10" width="6" height="5" fill="#059669" />
+          <rect x="6" y="10" width="4" height="4" fill="#ffffff" />
+        </svg>
+      );
+    }
+
+    function InnButlerPixel({ size = 56 }) {
+      return (
+        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-purple-500/50">
+          <rect x="5" y="1" width="6" height="3" fill="#e2e8f0" />
+          <rect x="4" y="3" width="2" height="4" fill="#94a3b8" />
+          <rect x="10" y="3" width="2" height="4" fill="#94a3b8" />
+          <rect x="5" y="4" width="6" height="6" fill="#fed7aa" />
+          <rect x="5" y="5" width="2" height="2" stroke="#eab308" strokeWidth="0.6" fill="none" />
+          <rect x="6" y="5" width="1" height="1" fill="#0f172a" />
+          <rect x="9" y="5" width="1" height="1" fill="#0f172a" />
+          <rect x="6" y="8" width="4" height="1" fill="#94a3b8" />
+          <rect x="4" y="10" width="8" height="5" fill="#0f172a" />
+          <rect x="6" y="10" width="4" height="3" fill="#ffffff" />
+          <rect x="7" y="10" width="2" height="2" fill="#b91c1c" />
+        </svg>
+      );
+    }
+
+    const PRESETS = [
+      { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300 },
+      { id: 'situps', name: '腹筋', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300 },
+      { id: 'squats', name: 'スクワット', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300 },
+      { id: 'running', name: 'ランニング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, limit: 240 },
+      { id: 'walking', name: 'ウォーキング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 240 },
+      { id: 'jump_rope', name: '縄跳び / バーピー', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 10, stepVal: 10, gain: 3, limit: 240 },
+      { id: 'stretch', name: 'ストレッチ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180 },
+      { id: 'yoga', name: 'ヨガ / 体幹', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180 },
+      { id: 'splits', name: '開脚 / 股関節柔軟', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180 },
+      { id: 'reading', name: '読書', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360 },
+      { id: 'study', name: '勉強 / 資格学習', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360 },
+      { id: 'language', name: '言語学習 / 暗記', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 360 },
+    ];
+
+    const RANK_THRESHOLDS = [
+      { rank: 'F', min: 0, max: 9, cap: 10 },
+      { rank: 'E', min: 10, max: 24, cap: 25 },
+      { rank: 'D', min: 25, max: 49, cap: 50 },
+      { rank: 'C', min: 50, max: 79, cap: 80 },
+      { rank: 'B', min: 80, max: 119, cap: 120 },
+      { rank: 'A', min: 120, max: 169, cap: 170 },
+      { rank: 'S', min: 170, max: 99999, cap: 200 },
+    ];
+
+    function getStatRankInfo(val = 0) {
+      for (let i = RANK_THRESHOLDS.length - 1; i >= 0; i--) {
+        if (val >= RANK_THRESHOLDS[i].min) return RANK_THRESHOLDS[i];
+      }
+      return RANK_THRESHOLDS[0];
+    }
+
+    function calculateOverallRank(stats) {
+      const s = stats || {};
+      const vals = [s.strength || 0, s.agility || 0, s.flexibility || 0, s.intelligence || 0].sort((a, b) => b - a);
+      const top2Avg = (vals[0] + vals[1]) / 2;
+      return { rank: getStatRankInfo(top2Avg).rank, avgVal: Math.round(top2Avg) };
+    }
+
+    function determineJob(stats) {
+      const s = (stats && stats.strength) || 0;
+      const a = (stats && stats.agility) || 0;
+      const f = (stats && stats.flexibility) || 0;
+      const i = (stats && stats.intelligence) || 0;
+      const allVals = [s, a, f, i];
+      const minVal = Math.min(...allVals);
+      const maxVal = Math.max(...allVals);
+
+      if (minVal >= 50 && (maxVal - minVal) <= 30) {
+        if (minVal >= 120) {
+          return { name: '真・勇者', tier: '伝説職', desc: '文武柔速すべてを神域まで極めし世界を導く救世主' };
+        }
+        return { name: '勇者', tier: '超越職', desc: 'あらゆる鍛錬を万遍なく乗り越え、全てを兼ね備えし英雄' };
+      }
+
+      const statList = [
+        { key: 'strength', name: '筋力', val: s },
+        { key: 'agility', name: '俊敏', val: a },
+        { key: 'flexibility', name: '柔軟', val: f },
+        { key: 'intelligence', name: '知力', val: i },
+      ].sort((x, y) => y.val - x.val);
+
+      const top1 = statList[0];
+      const top2 = statList[1];
+      const avgTop2 = (top1.val + top2.val) / 2;
+
+      if (avgTop2 < 25) {
+        return { name: '見習い冒険者', tier: '見習い', desc: '街の雑用や基礎体力を鍛える駆け出し冒険者' };
+      }
+
+      const isHighTier = avgTop2 >= 80;
+      const isDual = (top1.val - top2.val) <= 15;
+
+      if (isDual) {
+        const combo = [top1.key, top2.key].sort().join('+');
+        switch(combo) {
+          case 'agility+strength':
+            return isHighTier ? { name: '拳聖', tier: '上級職', desc: '気功と連撃を極めた体術の頂点' } : { name: '武闘家', tier: '基本職', desc: '拳と蹴りの速射で圧倒する格闘家' };
+          case 'flexibility+strength':
+            return isHighTier ? { name: '聖騎士', tier: '上級職', desc: '衝撃を受け流す体幹と神聖な護りを宿す鉄壁の盾' } : { name: '重装騎士', tier: '基本職', desc: '頑強な鎧と筋力で前線を支える騎士' };
+          case 'agility+flexibility':
+            return isHighTier ? { name: '忍者', tier: '上級職', desc: '神出鬼没の身のこなしで死角を制する達人' } : { name: '忍び', tier: '基本職', desc: '身軽さと柔軟さで敵を惑わす下忍' };
+          case 'intelligence+strength':
+            return isHighTier ? { name: '魔剣士', tier: '上級職', desc: '剣技に高位魔法を宿して戦う文武両道の花形' } : { name: '魔法戦士', tier: '基本職', desc: '剣と基礎魔法を器用に操る万能戦士' };
+          case 'agility+intelligence':
+            return isHighTier ? { name: '狙撃手', tier: '上級職', desc: '風と弾道を完璧に読み急所を射抜くスナイパー' } : { name: '弓使い', tier: '基本職', desc: '状況判断と素早い矢の装填で援護する射手' };
+          case 'flexibility+intelligence':
+            return isHighTier ? { name: 'ネクロマンサー', tier: '上級職', desc: '深淵の知恵と異界の気配を受け流す死霊術士' } : { name: '呪術師', tier: '基本職', desc: '霊的な気配を読みデバフを操る術士' };
+          default:
+            break;
+        }
+      }
+
+      switch(top1.key) {
+        case 'strength':
+          return isHighTier ? { name: '狂戦士', tier: '上級職', desc: '理性を超越した腕力で全てを叩き割る破壊神' } : { name: '戦士', tier: '基本職', desc: '剛腕で武器を振るう前衛の基本職' };
+        case 'agility':
+          return isHighTier ? { name: 'アサシン', tier: '上級職', desc: '音もなく間合いを詰め急所を一撃で断つ暗殺者' } : { name: '軽戦士', tier: '基本職', desc: '素早さと手数の多さで優位に立つ身軽な戦士' };
+        case 'flexibility':
+          return isHighTier ? { name: '幻影士', tier: '上級職', desc: '関節の柔らかさで残像すら惑わせる回避の達人' } : { name: '道化師', tier: '基本職', desc: 'しなやかな動きで敵の攻撃をことごとく躱すトリックスター' };
+        case 'intelligence':
+          return isHighTier ? { name: '大魔導士', tier: '上級職', desc: '世界の理を解き広域属性魔法を放つ大賢者' } : { name: '魔導士', tier: '基本職', desc: '知識と分析で敵の弱点を突く呪術士' };
+        default:
+          return { name: '冒険者', tier: '基本職', desc: '未知なる世界へ挑む者' };
+      }
+    }
+
+    function getInnInfo(tier) {
+      if (tier === '上級職' || tier === '超越職' || tier === '伝説職') {
+        return {
+          id: 'luxury',
+          name: '高級宿屋',
+          keeperName: '執事 セバスチャン',
+          costPerDay: 30,
+          campCostPerDay: 10,
+          desc: '一流冒険者にふさわしい贅を尽くした部屋と栄養食',
+          getNormalSpeech: (name, days, cost) => `「${name}様、おはようございます。昨夜はよくお休みになれましたでしょうか。滞在費 ${days}日分（${cost} G）を精算いたしました。本日も高貴なるご活躍を。」`
+        };
+      } else if (tier === '基本職') {
+        return {
+          id: 'normal',
+          name: '普通の宿屋',
+          keeperName: '看板娘 エマ',
+          costPerDay: 10,
+          campCostPerDay: 3,
+          desc: '一人前冒険者が集う温かいスープと個室ベッド',
+          getNormalSpeech: (name, days, cost) => `「${name}さん、おはよう！しっかり疲れは取れた？ 宿泊代とお食事代で ${cost} G（${days}日分）いただきまーす！ 今日も無理せず頑張ってね！」`
+        };
+      } else {
+        return {
+          id: 'cheap',
+          name: '古びた安宿',
+          keeperName: '安宿の店主 バルガス',
+          costPerDay: 3,
+          campCostPerDay: 1,
+          desc: '見習い向けの質素な相部屋と乾パン',
+          getNormalSpeech: (name, days, cost) => `「おう、起きたか${name}。宿泊代とメシ代で ${cost} G（${days}日分）もらうぜ。今日もギルドの雑用でしっかり日銭稼いできな！」`
+        };
+      }
+    // 全4ステータスが偏りなく登場するよう再設計したクエストデータ（各能力均等配分）
     const ALL_GUILD_QUESTS = [
       // F級（各能力1回ずつ均等登場）
       { id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。', reqStreak: 0, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 }, failLogs: { intelligence: '毒草と見分けがつかなかった。【知力】を鍛えよう！', flexibility: '足腰が硬く滑落した。【柔軟】を鍛えよう！' }, rewardGold: 8, rewardTitle: '草原の採取者' },
