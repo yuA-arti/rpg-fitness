@@ -1,392 +1,45 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>RPG Fitness: Status Quest</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            cyber: {
-              black: '#070913',
-              card: '#121829',
-              cyan: '#00f0ff',
-              purple: '#b026ff',
-              pink: '#ff4d94',
-              gold: '#ffd166',
-            }
-          },
-          boxShadow: {
-            'neon-cyan': '0 0 15px rgba(0, 240, 255, 0.4)',
-            'neon-purple': '0 0 15px rgba(176, 38, 255, 0.45)',
-            'neon-pink': '0 0 15px rgba(255, 77, 148, 0.4)',
-            'neon-gold': '0 0 20px rgba(255, 209, 102, 0.5)',
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Orbitron:wght@700;900&display=swap');
-    body {
-      font-family: 'M PLUS Rounded 1c', sans-serif;
-      background-color: #070913;
-      color: #f1f5f9;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    .font-scifi {
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 0.08em;
-    }
-    .pixelated {
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-    }
-    ::-webkit-scrollbar { display: none; }
-  </style>
-</head>
-<body class="min-h-screen overflow-x-hidden bg-[#070913]">
-  <div id="root"></div>
-
-  <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
-
-    function AppIcon({ name, className = "w-4 h-4" }) {
-      switch (name) {
-        case 'dumbbell':
-          return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>
-            </svg>
-          );
-        case 'scroll':
-          return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h11a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2Z"/><path d="M4 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4"/>
-            </svg>
-          );
-        case 'settings':
-          return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-            </svg>
-          );
-        case 'zap':
-          return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-            </svg>
-          );
-        case 'key':
-          return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>
-            </svg>
-          );
-        case 'trash':
-          return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-            </svg>
-          );
-        case 'edit':
-          return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
-            </svg>
-          );
-        case 'image-plus':
-          return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" y1="5" x2="22" y2="5"/><line x1="19" y1="2" x2="19" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-            </svg>
-          );
-        case 'user':
-          return (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-            </svg>
-          );
-        default:
-          return null;
-      }
-    }
-
-    function GuildReceptionistPixel({ size = 52 }) {
-      return (
-        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-500/40">
-          <rect x="5" y="1" width="6" height="2" fill="#0284c7" />
-          <rect x="7" y="0" width="2" height="1" fill="#f59e0b" />
-          <rect x="4" y="3" width="8" height="2" fill="#92400e" />
-          <rect x="3" y="5" width="2" height="5" fill="#92400e" />
-          <rect x="11" y="5" width="2" height="5" fill="#92400e" />
-          <rect x="5" y="5" width="6" height="5" fill="#fed7aa" />
-          <rect x="6" y="6" width="1" height="2" fill="#0f172a" />
-          <rect x="9" y="6" width="1" height="2" fill="#0f172a" />
-          <rect x="5" y="8" width="1" height="1" fill="#f43f5e" />
-          <rect x="10" y="8" width="1" height="1" fill="#f43f5e" />
-          <rect x="7" y="8" width="2" height="1" fill="#ea580c" />
-          <rect x="5" y="10" width="6" height="2" fill="#ffffff" />
-          <rect x="7" y="10" width="2" height="2" fill="#e11d48" />
-          <rect x="4" y="12" width="8" height="3" fill="#0369a1" />
-          <rect x="6" y="12" width="4" height="3" fill="#f8fafc" />
-          <rect x="7" y="13" width="2" height="1" fill="#f59e0b" />
-          <rect x="3" y="13" width="1" height="2" fill="#fed7aa" />
-          <rect x="12" y="13" width="1" height="2" fill="#fed7aa" />
-        </svg>
-      );
-    }
-
-    function GuildAuditorPixel({ size = 56 }) {
-      return (
-        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-red-500/60">
-          <rect x="5" y="1" width="6" height="2" fill="#1e1b4b" />
-          <rect x="4" y="3" width="8" height="2" fill="#cbd5e1" />
-          <rect x="3" y="5" width="2" height="5" fill="#cbd5e1" />
-          <rect x="11" y="5" width="2" height="5" fill="#cbd5e1" />
-          <rect x="5" y="5" width="6" height="5" fill="#fed7aa" />
-          <rect x="5" y="6" width="3" height="2" stroke="#dc2626" strokeWidth="0.6" fill="none" />
-          <rect x="8" y="6" width="3" height="2" stroke="#dc2626" strokeWidth="0.6" fill="none" />
-          <rect x="6" y="6" width="1" height="1" fill="#2563eb" />
-          <rect x="9" y="6" width="1" height="1" fill="#2563eb" />
-          <rect x="7" y="8" width="2" height="1" fill="#991b1b" />
-          <rect x="5" y="10" width="6" height="2" fill="#0f172a" />
-          <rect x="7" y="10" width="2" height="1" fill="#e2e8f0" />
-          <rect x="7" y="11" width="2" height="1" fill="#eab308" />
-          <rect x="4" y="12" width="8" height="3" fill="#1e1b4b" />
-          <rect x="6" y="12" width="4" height="3" fill="#312e81" />
-          <rect x="3" y="13" width="1" height="2" fill="#fed7aa" />
-          <rect x="12" y="13" width="1" height="2" fill="#fed7aa" />
-        </svg>
-      );
-    }
-
-    function InnOldManPixel({ size = 56 }) {
-      return (
-        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-amber-800">
-          <rect x="4" y="2" width="8" height="2" fill="#78350f" />
-          <rect x="3" y="4" width="10" height="2" fill="#b45309" />
-          <rect x="4" y="5" width="8" height="6" fill="#fed7aa" />
-          <rect x="5" y="5" width="2" height="1" fill="#451a03" />
-          <rect x="9" y="5" width="2" height="1" fill="#451a03" />
-          <rect x="5" y="6" width="1" height="1" fill="#0f172a" />
-          <rect x="10" y="6" width="1" height="1" fill="#0f172a" />
-          <rect x="5" y="8" width="6" height="3" fill="#78350f" />
-          <rect x="7" y="8" width="2" height="1" fill="#451a03" />
-          <rect x="4" y="11" width="8" height="4" fill="#57534e" />
-          <rect x="6" y="11" width="4" height="4" fill="#d6d3d1" />
-        </svg>
-      );
-    }
-
-    function InnGirlPixel({ size = 56 }) {
-      return (
-        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-emerald-500/50">
-          <rect x="4" y="1" width="8" height="3" fill="#facc15" />
-          <rect x="3" y="4" width="2" height="4" fill="#facc15" />
-          <rect x="11" y="3" width="3" height="5" fill="#facc15" />
-          <rect x="4" y="2" width="7" height="1" fill="#10b981" />
-          <rect x="5" y="4" width="6" height="6" fill="#fef08a" />
-          <rect x="6" y="5" width="1" height="2" fill="#065f46" />
-          <rect x="9" y="5" width="1" height="2" fill="#065f46" />
-          <rect x="5" y="7" width="1" height="1" fill="#f43f5e" />
-          <rect x="10" y="7" width="1" height="1" fill="#f43f5e" />
-          <rect x="7" y="8" width="2" height="1" fill="#ea580c" />
-          <rect x="5" y="10" width="6" height="5" fill="#059669" />
-          <rect x="6" y="10" width="4" height="4" fill="#ffffff" />
-        </svg>
-      );
-    }
-
-    function InnButlerPixel({ size = 56 }) {
-      return (
-        <svg viewBox="0 0 16 16" width={size} height={size} className="pixelated drop-shadow-md shrink-0 bg-slate-950 p-1 rounded-xl border border-purple-500/50">
-          <rect x="5" y="1" width="6" height="3" fill="#e2e8f0" />
-          <rect x="4" y="3" width="2" height="4" fill="#94a3b8" />
-          <rect x="10" y="3" width="2" height="4" fill="#94a3b8" />
-          <rect x="5" y="4" width="6" height="6" fill="#fed7aa" />
-          <rect x="5" y="5" width="2" height="2" stroke="#eab308" strokeWidth="0.6" fill="none" />
-          <rect x="6" y="5" width="1" height="1" fill="#0f172a" />
-          <rect x="9" y="5" width="1" height="1" fill="#0f172a" />
-          <rect x="6" y="8" width="4" height="1" fill="#94a3b8" />
-          <rect x="4" y="10" width="8" height="5" fill="#0f172a" />
-          <rect x="6" y="10" width="4" height="3" fill="#ffffff" />
-          <rect x="7" y="10" width="2" height="2" fill="#b91c1c" />
-        </svg>
-      );
-    }
-
-    const PRESETS = [
-      { id: 'pushups', name: '腕立て伏せ', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300 },
-      { id: 'situps', name: '腹筋', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300 },
-      { id: 'squats', name: 'スクワット', category: 'strength', statName: '筋力', unit: '回', defaultVal: 20, stepVal: 20, gain: 2, limit: 300 },
-      { id: 'running', name: 'ランニング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 3, limit: 240 },
-      { id: 'walking', name: 'ウォーキング', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 240 },
-      { id: 'jump_rope', name: '縄跳び / バーピー', category: 'agility', statName: '俊敏', unit: '分', defaultVal: 10, stepVal: 10, gain: 3, limit: 240 },
-      { id: 'stretch', name: 'ストレッチ', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180 },
-      { id: 'yoga', name: 'ヨガ / 体幹', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180 },
-      { id: 'splits', name: '開脚 / 股関節柔軟', category: 'flexibility', statName: '柔軟', unit: '分', defaultVal: 10, stepVal: 10, gain: 2, limit: 180 },
-      { id: 'reading', name: '読書', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360 },
-      { id: 'study', name: '勉強 / 資格学習', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 20, stepVal: 20, gain: 3, limit: 360 },
-      { id: 'language', name: '言語学習 / 暗記', category: 'intelligence', statName: '知力', unit: '分', defaultVal: 15, stepVal: 15, gain: 2, limit: 360 },
-    ];
-
-    const RANK_THRESHOLDS = [
-      { rank: 'F', min: 0, max: 9, cap: 10 },
-      { rank: 'E', min: 10, max: 24, cap: 25 },
-      { rank: 'D', min: 25, max: 49, cap: 50 },
-      { rank: 'C', min: 50, max: 79, cap: 80 },
-      { rank: 'B', min: 80, max: 119, cap: 120 },
-      { rank: 'A', min: 120, max: 169, cap: 170 },
-      { rank: 'S', min: 170, max: 99999, cap: 200 },
-    ];
-
-    function getStatRankInfo(val = 0) {
-      for (let i = RANK_THRESHOLDS.length - 1; i >= 0; i--) {
-        if (val >= RANK_THRESHOLDS[i].min) return RANK_THRESHOLDS[i];
-      }
-      return RANK_THRESHOLDS[0];
-    }
-
-    function calculateOverallRank(stats) {
-      const s = stats || {};
-      const vals = [s.strength || 0, s.agility || 0, s.flexibility || 0, s.intelligence || 0].sort((a, b) => b - a);
-      const top2Avg = (vals[0] + vals[1]) / 2;
-      return { rank: getStatRankInfo(top2Avg).rank, avgVal: Math.round(top2Avg) };
-    }
-
-    function determineJob(stats) {
-      const s = (stats && stats.strength) || 0;
-      const a = (stats && stats.agility) || 0;
-      const f = (stats && stats.flexibility) || 0;
-      const i = (stats && stats.intelligence) || 0;
-      const allVals = [s, a, f, i];
-      const minVal = Math.min(...allVals);
-      const maxVal = Math.max(...allVals);
-
-      if (minVal >= 50 && (maxVal - minVal) <= 30) {
-        if (minVal >= 120) {
-          return { name: '真・勇者', tier: '伝説職', desc: '文武柔速すべてを神域まで極めし世界を導く救世主' };
-        }
-        return { name: '勇者', tier: '超越職', desc: 'あらゆる鍛錬を万遍なく乗り越え、全てを兼ね備えし英雄' };
-      }
-
-      const statList = [
-        { key: 'strength', name: '筋力', val: s },
-        { key: 'agility', name: '俊敏', val: a },
-        { key: 'flexibility', name: '柔軟', val: f },
-        { key: 'intelligence', name: '知力', val: i },
-      ].sort((x, y) => y.val - x.val);
-
-      const top1 = statList[0];
-      const top2 = statList[1];
-      const avgTop2 = (top1.val + top2.val) / 2;
-
-      if (avgTop2 < 25) {
-        return { name: '見習い冒険者', tier: '見習い', desc: '街の雑用や基礎体力を鍛える駆け出し冒険者' };
-      }
-
-      const isHighTier = avgTop2 >= 80;
-      const isDual = (top1.val - top2.val) <= 15;
-
-      if (isDual) {
-        const combo = [top1.key, top2.key].sort().join('+');
-        switch(combo) {
-          case 'agility+strength':
-            return isHighTier ? { name: '拳聖', tier: '上級職', desc: '気功と連撃を極めた体術の頂点' } : { name: '武闘家', tier: '基本職', desc: '拳と蹴りの速射で圧倒する格闘家' };
-          case 'flexibility+strength':
-            return isHighTier ? { name: '聖騎士', tier: '上級職', desc: '衝撃を受け流す体幹と神聖な護りを宿す鉄壁の盾' } : { name: '重装騎士', tier: '基本職', desc: '頑強な鎧と筋力で前線を支える騎士' };
-          case 'agility+flexibility':
-            return isHighTier ? { name: '忍者', tier: '上級職', desc: '神出鬼没の身のこなしで死角を制する達人' } : { name: '忍び', tier: '基本職', desc: '身軽さと柔軟さで敵を惑わす下忍' };
-          case 'intelligence+strength':
-            return isHighTier ? { name: '魔剣士', tier: '上級職', desc: '剣技に高位魔法を宿して戦う文武両道の花形' } : { name: '魔法戦士', tier: '基本職', desc: '剣と基礎魔法を器用に操る万能戦士' };
-          case 'agility+intelligence':
-            return isHighTier ? { name: '狙撃手', tier: '上級職', desc: '風と弾道を完璧に読み急所を射抜くスナイパー' } : { name: '弓使い', tier: '基本職', desc: '状況判断と素早い矢の装填で援護する射手' };
-          case 'flexibility+intelligence':
-            return isHighTier ? { name: 'ネクロマンサー', tier: '上級職', desc: '深淵の知恵と異界の気配を受け流す死霊術士' } : { name: '呪術師', tier: '基本職', desc: '霊的な気配を読みデバフを操る術士' };
-          default:
-            break;
-        }
-      }
-
-      switch(top1.key) {
-        case 'strength':
-          return isHighTier ? { name: '狂戦士', tier: '上級職', desc: '理性を超越した腕力で全てを叩き割る破壊神' } : { name: '戦士', tier: '基本職', desc: '剛腕で武器を振るう前衛の基本職' };
-        case 'agility':
-          return isHighTier ? { name: 'アサシン', tier: '上級職', desc: '音もなく間合いを詰め急所を一撃で断つ暗殺者' } : { name: '軽戦士', tier: '基本職', desc: '素早さと手数の多さで優位に立つ身軽な戦士' };
-        case 'flexibility':
-          return isHighTier ? { name: '幻影士', tier: '上級職', desc: '関節の柔らかさで残像すら惑わせる回避の達人' } : { name: '道化師', tier: '基本職', desc: 'しなやかな動きで敵の攻撃をことごとく躱すトリックスター' };
-        case 'intelligence':
-          return isHighTier ? { name: '大魔導士', tier: '上級職', desc: '世界の理を解き広域属性魔法を放つ大賢者' } : { name: '魔導士', tier: '基本職', desc: '知識と分析で敵の弱点を突く呪術士' };
-        default:
-          return { name: '冒険者', tier: '基本職', desc: '未知なる世界へ挑む者' };
-      }
-    }
-
-    function getInnInfo(tier) {
-      if (tier === '上級職' || tier === '超越職' || tier === '伝説職') {
-        return {
-          id: 'luxury',
-          name: '高級宿屋',
-          keeperName: '執事 セバスチャン',
-          costPerDay: 30,
-          campCostPerDay: 10,
-          desc: '一流冒険者にふさわしい贅を尽くした部屋と栄養食',
-          getNormalSpeech: (name, days, cost) => `「${name}様、おはようございます。昨夜はよくお休みになれましたでしょうか。滞在費 ${days}日分（${cost} G）を精算いたしました。本日も高貴なるご活躍を。」`
-        };
-      } else if (tier === '基本職') {
-        return {
-          id: 'normal',
-          name: '普通の宿屋',
-          keeperName: '看板娘 エマ',
-          costPerDay: 10,
-          campCostPerDay: 3,
-          desc: '一人前冒険者が集う温かいスープと個室ベッド',
-          getNormalSpeech: (name, days, cost) => `「${name}さん、おはよう！しっかり疲れは取れた？ 宿泊代とお食事代で ${cost} G（${days}日分）いただきまーす！ 今日も無理せず頑張ってね！」`
-        };
-      } else {
-        return {
-          id: 'cheap',
-          name: '古びた安宿',
-          keeperName: '安宿の店主 バルガス',
-          costPerDay: 3,
-          campCostPerDay: 1,
-          desc: '見習い向けの質素な相部屋と乾パン',
-          getNormalSpeech: (name, days, cost) => `「おう、起きたか${name}。宿泊代とメシ代で ${cost} G（${days}日分）もらうぜ。今日もギルドの雑用でしっかり日銭稼いできな！」`
-        };
-      }
-    }
+// 全4ステータスが偏りなく登場するよう再設計したクエストデータ（各能力均等配分）
     const ALL_GUILD_QUESTS = [
+      // F級（各能力1回ずつ均等登場）
       { id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。', reqStreak: 0, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 }, failLogs: { intelligence: '毒草と見分けがつかなかった。【知力】を鍛えよう！', flexibility: '足腰が硬く滑落した。【柔軟】を鍛えよう！' }, rewardGold: 8, rewardTitle: '草原の採取者' },
       { id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。', reqStreak: 0, reqTypes: ['筋力'], reqStats: { strength: 8 }, failLogs: { strength: '腕力が足りず泥を引き上げきれなかった。【筋力】を鍛えよう！' }, rewardGold: 10, rewardTitle: '奉仕の掃除人' },
       { id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。', reqStreak: 0, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 }, failLogs: { agility: '走るスピードが遅く見失った。【俊敏】を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 10, rewardTitle: '迷い猫の救い手' },
       { id: 'f4', rank: 'F', name: 'ギルド書庫の羊皮紙整理', desc: '乱雑に積まれた古い文献を読み解き仕分ける。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 8 }, failLogs: { intelligence: '古代文字が読めず整理が進まなかった。【知力】を鍛えよう！' }, rewardGold: 9, rewardTitle: '書庫の見習い手' },
+
+      // E級（筋力2 / 俊敏2 / 柔軟1 / 知力1）
       { id: 'e1', rank: 'E', name: 'ジャイアントラット駆除', desc: '食料庫を荒らす巨大ネズミの群れを仕留める。', reqStreak: 0, reqTypes: ['俊敏'], reqStats: { agility: 15 }, failLogs: { agility: '踏み込みが遅い！翻弄された。【俊敏】を鍛えよう！' }, rewardGold: 20, rewardTitle: '害獣ハンター' },
       { id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。', reqStreak: 0, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 }, failLogs: { strength: 'パワー負け！弾き飛ばされた。【筋力】を鍛えよう！', flexibility: '衝撃を体幹で受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 25, rewardTitle: '畑の守護者' },
       { id: 'e3', rank: 'E', name: '初級魔法スクロールの解読', desc: '魔力暴走を起こした巻物の呪文式を冷静に分析する。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 18 }, failLogs: { intelligence: '呪文式の解読が追いつかず暴走した！【知力】を鍛えよう！' }, rewardGold: 24, rewardTitle: '魔導の書生' },
+      { id: 'e4', rank: 'E', name: '断崖の魔鉱石採掘', desc: '不安定な足場を駆け抜け、硬い岩盤から鉱石を砕き出す。', reqStreak: 0, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 14, agility: 14 }, failLogs: { strength: '岩盤を砕く腕力が足りなかった。【筋力】を鍛えよう！', agility: '落石をかわしきれなかった。【俊敏】を鍛えよう！' }, rewardGold: 25, rewardTitle: '岩砕きの採掘師' },
+
+      // D級（筋力1 / 俊敏2 / 柔軟2 / 知力2）
       { id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。', reqStreak: 3, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 }, failLogs: { strength: '打ち込みが浅く倒しきれなかった。【筋力】を鍛えよう！', agility: 'ステップについていけなかった。【俊敏】を鍛えよう！' }, rewardGold: 60, rewardTitle: '斥候スレイヤー' },
-      { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
+      { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！', flexibility: '怪異の衝撃波を受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
       { id: 'd3', rank: 'D', name: '盗賊団の暗号通信解読', desc: '街道を脅かす盗賊の密書を解析し奇襲を防ぐ。', reqStreak: 3, reqTypes: ['知力'], reqStats: { intelligence: 35 }, failLogs: { intelligence: '暗号の法則を見抜けなかった！【知力】を鍛えよう！' }, rewardGold: 70, rewardTitle: '見抜く眼' },
+      { id: 'd4', rank: 'D', name: '激流の丸太橋・救援物資運搬', desc: '揺れる細い丸太橋の上で体幹を保ち素早く物資を届ける。', reqStreak: 3, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 28, flexibility: 28 }, failLogs: { agility: '橋が崩れる前に渡りきれなかった。【俊敏】を鍛えよう！', flexibility: 'バランスを崩して川へ転落した！【柔軟】を鍛えよう！' }, rewardGold: 68, rewardTitle: '疾風の運び屋' },
+
+      // C級（筋力2 / 俊敏2 / 柔軟2 / 知力2）
       { id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。', reqStreak: 5, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 }, failLogs: { strength: '重い棍棒に力負けし弾かれた！【筋力】を鍛えよう！', flexibility: '打撃を受け止めきれなかった！【柔軟】を鍛えよう！' }, rewardGold: 150, rewardTitle: '豪傑の武芸者' },
       { id: 'c2', rank: 'C', name: '幻影の魔術師の結界破り', desc: '迷いの森に展開された偽りの幻術結界の核を看破する。', reqStreak: 5, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 60, agility: 50 }, failLogs: { intelligence: '幻術を見抜けず道に迷った！【知力】を鍛えよう！', agility: '歪みへ飛び込む瞬発力が足りなかった。【俊敏】を鍛えよう！' }, rewardGold: 160, rewardTitle: '幻影を暴く者' },
       { id: 'c3', rank: 'C', name: '古代錬金ゴーレムの暴走停止', desc: '暴走する泥人形の魔導回路を解析し弱点を突く。', reqStreak: 5, reqTypes: ['知力', '筋力'], reqStats: { intelligence: 55, strength: 50 }, failLogs: { intelligence: '魔力回路の急所が見抜けなかった！【知力】を鍛えよう！', strength: '打ち込むパワーが足りない！【筋力】を鍛えよう！' }, rewardGold: 165, rewardTitle: '錬金の解体士' },
+      { id: 'c4', rank: 'C', name: '密林の毒蛇群・包囲網突破', desc: '四方から飛びかかる毒蛇の牙をしなやかに躱し殲滅する。', reqStreak: 5, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 55, flexibility: 55 }, failLogs: { agility: '連撃の速度が追いつかない！【俊敏】を鍛えよう！', flexibility: '死角からの噛みつきを反らせなかった！【柔軟】を鍛えよう！' }, rewardGold: 155, rewardTitle: '毒牙を舞う者' },
+
+      // B級（筋力2 / 俊敏1 / 柔軟2 / 知力2）
       { id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '砦を半壊させる巨大牛頭魔獣との決闘。', reqStreak: 7, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 }, failLogs: { strength: '破壊力が桁違いだ！押し切られた。【筋力】を鍛えよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【柔軟】を鍛えよう！' }, rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー' },
       { id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王との知恵比べ。', reqStreak: 7, reqTypes: ['知力'], reqStats: { intelligence: 95 }, failLogs: { intelligence: '術式の展開速度で圧倒された！【知力】を極限まで高めよう！' }, rewardGold: 380, rewardTitle: '深淵の解読者' },
-      { id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する古代遺跡の大扉を開錠する。', reqStreak: 7, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 }, failLogs: { intelligence: '星盤の方程式が読み解けない！【知力】を鍛えよう！' }, rewardGold: 360, rewardTitle: '星辰の解読士' },
-      { id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '複数属性のブレスを撃ち分ける合成魔獣を翻弄する。', reqStreak: 7, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 85, agility: 85 }, failLogs: { intelligence: 'ブレスの予備動作を見失った！【知力】を鍛えよう！', agility: '同時射撃をかわせなかった！【俊敏】を鍛えよう！' }, rewardGold: 370, rewardTitle: '多頭獣狩り' },
+      { id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する古代遺跡の大扉を開錠する。', reqStreak: 7, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 }, failLogs: { intelligence: '星盤の方程式が読み解けない！【知力】を鍛えよう！', flexibility: '狭隘な仕掛けの奥へ滑り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 360, rewardTitle: '星辰の解読士' },
+      { id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '猛スピードで襲いかかる合成魔獣の突進を受け止め叩き伏せる。', reqStreak: 7, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 88, agility: 88 }, failLogs: { strength: '魔獣の突進を押し返せなかった！【筋力】を鍛えよう！', agility: '連続ブレスをかわせなかった！【俊敏】を鍛えよう！' }, rewardGold: 370, rewardTitle: '多頭獣狩り' },
+
+      // A級（筋力2 / 俊敏2 / 柔軟2 / 知力2）
       { id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '滑空するワイバーンの急所を風を読んで射抜く。', reqStreak: 14, reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 }, failLogs: { agility: '照準が追いつかない！【俊敏】を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【知力】を研ぎ澄まそう！' }, rewardGold: 700, rewardTitle: '竜殺しの鷹目' },
-      { id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲と高位障壁を纏う古代兵器。', reqStreak: 14, reqTypes: ['筋力', '知力'], reqStats: { strength: 130, intelligence: 130 }, failLogs: { strength: '装甲が硬すぎる！刃が弾かれた。【筋力】を鍛えよう！', intelligence: '障壁解除コードが解読できない！【知力】を極限まで高めよう！' }, rewardGold: 750, rewardTitle: '古代の解縛者' },
+      { id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲の巨体を剛腕で砕き、重撃を体幹で受け流す。', reqStreak: 14, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 135, flexibility: 130 }, failLogs: { strength: '装甲が硬すぎる！刃が弾かれた。【筋力】を鍛えよう！', flexibility: '鉄槌の衝撃を受け流せず吹き飛ばされた！【柔軟】を鍛えよう！' }, rewardGold: 750, rewardTitle: '鋼鉄砕きの武人' },
       { id: 'a3', rank: 'A', name: '禁忌の降霊儀式・絶対結界遮断', desc: '都市壊滅を狙う邪神降霊陣の詠唱を逆算し遮断する。', reqStreak: 14, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 145, flexibility: 125 }, failLogs: { intelligence: '術式反転についていけない！【知力】を極限まで高めよう！', flexibility: '魔力逆流を受け流せず気絶した！【柔軟】を鍛えよう！' }, rewardGold: 780, rewardTitle: '天理の大賢者' },
+      { id: 'a4', rank: 'A', name: '疾風の剣聖との真剣手合わせ', desc: '神速の太刀筋を見切り、渾身の一撃で打ち勝つ決闘。', reqStreak: 14, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 130, agility: 140 }, failLogs: { strength: '鍔迫り合いで力負けした！【筋力】を鍛えよう！', agility: '神速の抜刀術に反応できなかった！【俊敏】を鍛えよう！' }, rewardGold: 760, rewardTitle: '剣聖を超えし者' },
+
+      // S級（全能力バランス要求）
       { id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。', reqStreak: 30, reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 }, failLogs: { strength: 'パワーが足りない！【筋力】を極めよう！', agility: 'ブレスを回避できない！【俊敏】を極めよう！', flexibility: '衝撃波をいなせない！【柔軟】を極めよう！', intelligence: '結界の真理を見破れない！【知力】を極めよう！' }, rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者' },
-      { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' }
+      { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' },
+      { id: 's3', rank: 'S', name: '覇王の試練・神速の剛腕', desc: '光速の連撃と山をも砕く剛力で闘神の座を奪い取る。', reqStreak: 30, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 180, agility: 180 }, failLogs: { strength: '闘神の拳に打ち負けた！【筋力】を極めよう！', agility: '残像すら捉えられない！【俊敏】を極めよう！' }, rewardGold: 3000, rewardTitle: '無双の闘神' }
     ];
 
     function getDailyAvailableQuests(dayTimestamp) {
@@ -483,7 +136,6 @@
       const currentJob = determineJob(player.stats);
       const inn = getInnInfo(currentJob.tier);
 
-      // 日付変更チェック（野宿時は自身の独白＆食費のみ）
       useEffect(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -1268,7 +920,7 @@
                   <GuildReceptionistPixel size={64} />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] text-amber-400 font-bold bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/40">
+                  <span className="text-[10px] text-amber-400 font-bold bg-amber-950/80 px-2.5 py-0.5 rounded border border-amber-500/40">
                     ギルド職員 クレア
                   </span>
                   <h3 className="font-bold text-sm text-white pt-1">{blockedNotice.title}</h3>
