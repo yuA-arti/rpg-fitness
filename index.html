@@ -363,45 +363,38 @@
           getNormalSpeech: (name, days, cost) => `「おう、起きたか${name}。宿泊代とメシ代で ${cost} G（${days}日分）もらうぜ。今日もギルドの雑用でしっかり日銭稼いできな！」`
         };
       }
-    // 全4ステータスが偏りなく登場するよう再設計したクエストデータ（各能力均等配分）
+    }// 全4ステータスが偏りなく登場するよう再設計したクエストデータ（各能力均等配分）
     const ALL_GUILD_QUESTS = [
-      // F級（各能力1回ずつ均等登場）
       { id: 'f1', rank: 'F', name: '近郊の薬草採取', desc: '傷薬に使う魔力草を見分けて採取する。', reqStreak: 0, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 5, flexibility: 5 }, failLogs: { intelligence: '毒草と見分けがつかなかった。【知力】を鍛えよう！', flexibility: '足腰が硬く滑落した。【柔軟】を鍛えよう！' }, rewardGold: 8, rewardTitle: '草原の採取者' },
       { id: 'f2', rank: 'F', name: '街の井戸掃除・泥さらい', desc: '水路に詰まった重い泥や瓦礫を掻き出す肉体労働。', reqStreak: 0, reqTypes: ['筋力'], reqStats: { strength: 8 }, failLogs: { strength: '腕力が足りず泥を引き上げきれなかった。【筋力】を鍛えよう！' }, rewardGold: 10, rewardTitle: '奉仕の掃除人' },
       { id: 'f3', rank: 'F', name: '迷子の子猫の捜索・保護', desc: 'すばしっこく路地裏へ逃げ込む子猫を保護する。', reqStreak: 0, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 8, flexibility: 5 }, failLogs: { agility: '走るスピードが遅く見失った。【俊敏】を鍛えよう！', flexibility: '狭い隙間へ潜り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 10, rewardTitle: '迷い猫の救い手' },
       { id: 'f4', rank: 'F', name: 'ギルド書庫の羊皮紙整理', desc: '乱雑に積まれた古い文献を読み解き仕分ける。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 8 }, failLogs: { intelligence: '古代文字が読めず整理が進まなかった。【知力】を鍛えよう！' }, rewardGold: 9, rewardTitle: '書庫の見習い手' },
 
-      // E級（筋力2 / 俊敏2 / 柔軟1 / 知力1）
       { id: 'e1', rank: 'E', name: 'ジャイアントラット駆除', desc: '食料庫を荒らす巨大ネズミの群れを仕留める。', reqStreak: 0, reqTypes: ['俊敏'], reqStats: { agility: 15 }, failLogs: { agility: '踏み込みが遅い！翻弄された。【俊敏】を鍛えよう！' }, rewardGold: 20, rewardTitle: '害獣ハンター' },
       { id: 'e2', rank: 'E', name: '畑荒らしの暴れイノシシ退治', desc: '突進してくる凶暴なイノシシを真っ向から止める。', reqStreak: 0, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 15, flexibility: 10 }, failLogs: { strength: 'パワー負け！弾き飛ばされた。【筋力】を鍛えよう！', flexibility: '衝撃を体幹で受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 25, rewardTitle: '畑の守護者' },
       { id: 'e3', rank: 'E', name: '初級魔法スクロールの解読', desc: '魔力暴走を起こした巻物の呪文式を冷静に分析する。', reqStreak: 0, reqTypes: ['知力'], reqStats: { intelligence: 18 }, failLogs: { intelligence: '呪文式の解読が追いつかず暴走した！【知力】を鍛えよう！' }, rewardGold: 24, rewardTitle: '魔導の書生' },
       { id: 'e4', rank: 'E', name: '断崖の魔鉱石採掘', desc: '不安定な足場を駆け抜け、硬い岩盤から鉱石を砕き出す。', reqStreak: 0, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 14, agility: 14 }, failLogs: { strength: '岩盤を砕く腕力が足りなかった。【筋力】を鍛えよう！', agility: '落石をかわしきれなかった。【俊敏】を鍛えよう！' }, rewardGold: 25, rewardTitle: '岩砕きの採掘師' },
 
-      // D級（筋力1 / 俊敏2 / 柔軟2 / 知力2）
       { id: 'd1', rank: 'D', name: 'すばしっこいコボルト斥候討伐', desc: '街道で小競り合いを仕掛けるコボルト集団を討つ。', reqStreak: 3, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 25, agility: 25 }, failLogs: { strength: '打ち込みが浅く倒しきれなかった。【筋力】を鍛えよう！', agility: 'ステップについていけなかった。【俊敏】を鍛えよう！' }, rewardGold: 60, rewardTitle: '斥候スレイヤー' },
       { id: 'd2', rank: 'D', name: '廃礼拝堂のゴースト除霊', desc: '霊的な気配を読み取り、聖句と結界で悪霊を鎮める。', reqStreak: 3, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 30, flexibility: 25 }, failLogs: { intelligence: '除霊呪文の構成にミスがあった！【知力】を鍛えよう！', flexibility: '怪異の衝撃波を受け流せなかった。【柔軟】を鍛えよう！' }, rewardGold: 65, rewardTitle: '鎮魂の術士' },
       { id: 'd3', rank: 'D', name: '盗賊団の暗号通信解読', desc: '街道を脅かす盗賊の密書を解析し奇襲を防ぐ。', reqStreak: 3, reqTypes: ['知力'], reqStats: { intelligence: 35 }, failLogs: { intelligence: '暗号の法則を見抜けなかった！【知力】を鍛えよう！' }, rewardGold: 70, rewardTitle: '見抜く眼' },
       { id: 'd4', rank: 'D', name: '激流の丸太橋・救援物資運搬', desc: '揺れる細い丸太橋の上で体幹を保ち素早く物資を届ける。', reqStreak: 3, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 28, flexibility: 28 }, failLogs: { agility: '橋が崩れる前に渡りきれなかった。【俊敏】を鍛えよう！', flexibility: 'バランスを崩して川へ転落した！【柔軟】を鍛えよう！' }, rewardGold: 68, rewardTitle: '疾風の運び屋' },
 
-      // C級（筋力2 / 俊敏2 / 柔軟2 / 知力2）
       { id: 'c1', rank: 'C', name: 'オーク部隊の強襲壊滅', desc: '頑強なオークの群れと正面から激突する。', reqStreak: 5, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 55, flexibility: 50 }, failLogs: { strength: '重い棍棒に力負けし弾かれた！【筋力】を鍛えよう！', flexibility: '打撃を受け止めきれなかった！【柔軟】を鍛えよう！' }, rewardGold: 150, rewardTitle: '豪傑の武芸者' },
       { id: 'c2', rank: 'C', name: '幻影の魔術師の結界破り', desc: '迷いの森に展開された偽りの幻術結界の核を看破する。', reqStreak: 5, reqTypes: ['知力', '俊敏'], reqStats: { intelligence: 60, agility: 50 }, failLogs: { intelligence: '幻術を見抜けず道に迷った！【知力】を鍛えよう！', agility: '歪みへ飛び込む瞬発力が足りなかった。【俊敏】を鍛えよう！' }, rewardGold: 160, rewardTitle: '幻影を暴く者' },
       { id: 'c3', rank: 'C', name: '古代錬金ゴーレムの暴走停止', desc: '暴走する泥人形の魔導回路を解析し弱点を突く。', reqStreak: 5, reqTypes: ['知力', '筋力'], reqStats: { intelligence: 55, strength: 50 }, failLogs: { intelligence: '魔力回路の急所が見抜けなかった！【知力】を鍛えよう！', strength: '打ち込むパワーが足りない！【筋力】を鍛えよう！' }, rewardGold: 165, rewardTitle: '錬金の解体士' },
       { id: 'c4', rank: 'C', name: '密林の毒蛇群・包囲網突破', desc: '四方から飛びかかる毒蛇の牙をしなやかに躱し殲滅する。', reqStreak: 5, reqTypes: ['俊敏', '柔軟'], reqStats: { agility: 55, flexibility: 55 }, failLogs: { agility: '連撃の速度が追いつかない！【俊敏】を鍛えよう！', flexibility: '死角からの噛みつきを反らせなかった！【柔軟】を鍛えよう！' }, rewardGold: 155, rewardTitle: '毒牙を舞う者' },
 
-      // B級（筋力2 / 俊敏1 / 柔軟2 / 知力2）
       { id: 'b1', rank: 'B', name: '狂乱のミノタウロス討伐', desc: '砦を半壊させる巨大牛頭魔獣との決闘。', reqStreak: 7, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 90, flexibility: 80 }, failLogs: { strength: '破壊力が桁違いだ！押し切られた。【筋力】を鍛えよう！', flexibility: '大斧の薙ぎ払いをいなしきれなかった。【柔軟】を鍛えよう！' }, rewardGold: 350, rewardTitle: 'ミノタウロスブレイカー' },
       { id: 'b2', rank: 'B', name: '大図書館の深淵リッチ討伐', desc: '失われた禁忌の詠唱を放つ不死の魔道王との知恵比べ。', reqStreak: 7, reqTypes: ['知力'], reqStats: { intelligence: 95 }, failLogs: { intelligence: '術式の展開速度で圧倒された！【知力】を極限まで高めよう！' }, rewardGold: 380, rewardTitle: '深淵の解読者' },
       { id: 'b3', rank: 'B', name: '古代封印迷宮の星盤パズル', desc: '天体の運行と連動する古代遺跡の大扉を開錠する。', reqStreak: 7, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 90, flexibility: 85 }, failLogs: { intelligence: '星盤の方程式が読み解けない！【知力】を鍛えよう！', flexibility: '狭隘な仕掛けの奥へ滑り込めなかった。【柔軟】を鍛えよう！' }, rewardGold: 360, rewardTitle: '星辰の解読士' },
       { id: 'b4', rank: 'B', name: '黒炎の魔獣キマイラ迎撃', desc: '猛スピードで襲いかかる合成魔獣の突進を受け止め叩き伏せる。', reqStreak: 7, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 88, agility: 88 }, failLogs: { strength: '魔獣の突進を押し返せなかった！【筋力】を鍛えよう！', agility: '連続ブレスをかわせなかった！【俊敏】を鍛えよう！' }, rewardGold: 370, rewardTitle: '多頭獣狩り' },
 
-      // A級（筋力2 / 俊敏2 / 柔軟2 / 知力2）
       { id: 'a1', rank: 'A', name: '飛竜ワイバーン群の狙撃', desc: '滑空するワイバーンの急所を風を読んで射抜く。', reqStreak: 14, reqTypes: ['俊敏', '知力'], reqStats: { agility: 135, intelligence: 125 }, failLogs: { agility: '照準が追いつかない！【俊敏】を鍛えよう！', intelligence: '気流の計算が狂い矢が逸れた！【知力】を研ぎ澄まそう！' }, rewardGold: 700, rewardTitle: '竜殺しの鷹目' },
       { id: 'a2', rank: 'A', name: '古代遺跡の守護神・鋼鉄ガーゴイル', desc: '超硬度装甲の巨体を剛腕で砕き、重撃を体幹で受け流す。', reqStreak: 14, reqTypes: ['筋力', '柔軟'], reqStats: { strength: 135, flexibility: 130 }, failLogs: { strength: '装甲が硬すぎる！刃が弾かれた。【筋力】を鍛えよう！', flexibility: '鉄槌の衝撃を受け流せず吹き飛ばされた！【柔軟】を鍛えよう！' }, rewardGold: 750, rewardTitle: '鋼鉄砕きの武人' },
       { id: 'a3', rank: 'A', name: '禁忌の降霊儀式・絶対結界遮断', desc: '都市壊滅を狙う邪神降霊陣の詠唱を逆算し遮断する。', reqStreak: 14, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 145, flexibility: 125 }, failLogs: { intelligence: '術式反転についていけない！【知力】を極限まで高めよう！', flexibility: '魔力逆流を受け流せず気絶した！【柔軟】を鍛えよう！' }, rewardGold: 780, rewardTitle: '天理の大賢者' },
       { id: 'a4', rank: 'A', name: '疾風の剣聖との真剣手合わせ', desc: '神速の太刀筋を見切り、渾身の一撃で打ち勝つ決闘。', reqStreak: 14, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 130, agility: 140 }, failLogs: { strength: '鍔迫り合いで力負けした！【筋力】を鍛えよう！', agility: '神速の抜刀術に反応できなかった！【俊敏】を鍛えよう！' }, rewardGold: 760, rewardTitle: '剣聖を超えし者' },
 
-      // S級（全能力バランス要求）
       { id: 's1', rank: 'S', name: '終焉の古竜・邪神討伐', desc: '世界存亡を賭けた規格外の厄災との決戦。', reqStreak: 30, reqTypes: ['筋力', '俊敏', '柔軟', '知力'], reqStats: { strength: 170, agility: 170, flexibility: 170, intelligence: 170 }, failLogs: { strength: 'パワーが足りない！【筋力】を極めよう！', agility: 'ブレスを回避できない！【俊敏】を極めよう！', flexibility: '衝撃波をいなせない！【柔軟】を極めよう！', intelligence: '結界の真理を見破れない！【知力】を極めよう！' }, rewardGold: 2500, rewardTitle: '世界を救いし伝説の勇者' },
       { id: 's2', rank: 'S', name: '世界の記憶・創世の魔道典解放', desc: '世界の全真理を脳内に取り込み調和させる。', reqStreak: 30, reqTypes: ['知力', '柔軟'], reqStats: { intelligence: 180, flexibility: 170 }, failLogs: { intelligence: '知識量に耐えきれず意識が混濁した！【知力】を極めよう！', flexibility: '神気の奔流に耐えきれなかった！【柔軟】を極めよう！' }, rewardGold: 3000, rewardTitle: '神域の全知者' },
       { id: 's3', rank: 'S', name: '覇王の試練・神速の剛腕', desc: '光速の連撃と山をも砕く剛力で闘神の座を奪い取る。', reqStreak: 30, reqTypes: ['筋力', '俊敏'], reqStats: { strength: 180, agility: 180 }, failLogs: { strength: '闘神の拳に打ち負けた！【筋力】を極めよう！', agility: '残像すら捉えられない！【俊敏】を極めよう！' }, rewardGold: 3000, rewardTitle: '無双の闘神' }
@@ -451,9 +444,7 @@
       lastActiveDate: null,
       isCamping: false,
       logs: []
-    };
-
-    function App() {
+    };function App() {
       const [player, setPlayer] = useState(() => {
         try {
           const saved = localStorage.getItem('rpg_fitness_player_guild_v19');
